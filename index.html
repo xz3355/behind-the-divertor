@@ -1,0 +1,1160 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Behind the Divertor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column (~68ch) that widens for the systems map; sections read as a field report from mine to reactor. */
+:root{
+  --bg:#eceff2; --surface:#ffffff; --ink:#15181c; --muted:#56606b; --line:#cdd3d9;
+  --glow:#c4560c;            /* hot tungsten / filament */
+  --plasma:#5b3cc4;          /* fusion end of the chain */
+  --high:#b42318; --mid:#a86a0b; --low:#2c7a57;
+  --high-bg:#fbe9e7; --mid-bg:#fbf1dd; --low-bg:#e3f2ea; --plasma-bg:#ece7fb; --gap-bg:#f4e6da;
+  --f-display:"Archivo", "Arial Narrow", Arial, sans-serif;
+  --f-body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111317; --surface:#1a1d22; --ink:#e7e9ec; --muted:#9ba4ae; --line:#2f343b;
+  --glow:#ff8f45; --plasma:#a08bff; --high:#ff7a6b; --mid:#f0b54d; --low:#5fd19c;
+  --high-bg:#3a1a17; --mid-bg:#33280f; --low-bg:#13301f; --plasma-bg:#241d40; --gap-bg:#33241a;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111317; --surface:#1a1d22; --ink:#e7e9ec; --muted:#9ba4ae; --line:#2f343b;
+  --glow:#ff8f45; --plasma:#a08bff; --high:#ff7a6b; --mid:#f0b54d; --low:#5fd19c;
+  --high-bg:#3a1a17; --mid-bg:#33280f; --low-bg:#13301f; --plasma-bg:#241d40; --gap-bg:#33241a;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.65 var(--f-body);
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+.wrap{max-width:68ch;margin:0 auto}
+.wide{max-width:1120px;margin:0 auto}
+a{color:var(--glow);text-underline-offset:2px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.1;margin:0}
+h2{font-size:clamp(1.6rem,4vw,2.2rem);font-stretch:85%;font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+.label{font:500 .72rem/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-size:.9em}
+.num{font-variant-numeric:tabular-nums}
+section{padding-block:56px;border-top:1px solid var(--line)}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+/* hero */
+header{padding-block:48px 40px}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:end}
+.cell{width:132px;border:2px solid var(--ink);background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.cell .z{font:500 .85rem var(--f-mono)}
+.cell .sym{font:900 4.2rem/1 var(--f-display);color:var(--glow);font-stretch:110%}
+.cell .nm{font-weight:600;font-size:.9rem}
+.cell .mp{font:400 .72rem var(--f-mono);color:var(--muted)}
+h1{font-size:clamp(2.4rem,7vw,4.4rem);font-weight:900;font-stretch:80%;letter-spacing:-.02em}
+.thesis{font-size:1.2rem;max-width:58ch;margin-top:20px}
+.byline{margin-top:16px;color:var(--muted);font-size:.9rem}
+@media (max-width:560px){.hero{grid-template-columns:1fr}.cell{width:120px}}
+
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:32px}
+.fact{border-top:3px solid var(--ink);padding-top:10px;min-width:0}
+.fact b{display:block;font:800 1.8rem/1.1 var(--f-display);font-stretch:90%}
+.fact span{font-size:.88rem;color:var(--muted)}
+@media (max-width:640px){.facts{grid-template-columns:1fr}}
+
+/* map */
+.mapbox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);margin-top:20px}
+.mapbox svg{display:block;min-width:900px;width:100%;height:auto}
+svg text{font-family:var(--f-body);fill:var(--ink)}
+svg .t-small{font-size:11px;fill:var(--muted)}
+svg .t-col{font:500 11px var(--f-mono);letter-spacing:.06em;fill:var(--muted)}
+svg .t-name{font-size:13px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;font-size:.85rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:-1px;margin-right:6px}
+
+/* risk entries */
+.risks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:8px}
+@media (max-width:720px){.risks{grid-template-columns:1fr}}
+.risk{background:var(--surface);border:1px solid var(--line);padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.sev{align-self:flex-start;font:500 .7rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px}
+.sev.high{background:var(--high-bg);color:var(--high)}
+.sev.mid{background:var(--mid-bg);color:var(--mid)}
+.sev.low{background:var(--low-bg);color:var(--low)}
+.risk p{font-size:.95rem}
+
+/* trace */
+.chain{display:flex;flex-direction:column;gap:0;margin-top:8px}
+.hop{display:grid;grid-template-columns:28px 1fr;gap:14px}
+.hop .rail{display:flex;flex-direction:column;align-items:center}
+.hop .dot{width:14px;height:14px;border-radius:50%;border:3px solid var(--high);background:var(--surface);margin-top:6px}
+.hop .ln{flex:1;width:2px;background:var(--line)}
+.hop:last-child .ln{display:none}
+.hop .body{padding-bottom:22px;min-width:0}
+.hop .body h3 a{color:var(--ink)}
+.evidence{margin-top:6px;font:400 .82rem/1.5 var(--f-mono);color:var(--muted)}
+.callout{background:var(--gap-bg);padding:18px 20px;border-left:4px solid var(--glow)}
+.callout p{font-size:.98rem}
+
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+.tablewrap{overflow-x:auto}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 .72rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.r{text-align:right}
+
+/* loop */
+.loop{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:8px;counter-reset:l}
+.loop div{background:var(--surface);border:1px solid var(--line);padding:14px;font-size:.9rem;position:relative;min-width:0}
+.loop div::before{counter-increment:l;content:counter(l);display:block;font:800 1.3rem var(--f-display);color:var(--glow);margin-bottom:4px}
+.loop-back{margin-top:10px;font-size:.88rem;color:var(--muted)}
+@media (max-width:720px){.loop{grid-template-columns:1fr 1fr}}
+@media (max-width:420px){.loop{grid-template-columns:1fr}}
+
+/* brief */
+.brief{background:var(--surface);border:1px solid var(--line);padding:28px clamp(18px,4vw,36px);display:flex;flex-direction:column;gap:18px}
+.brief .memo{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem;border-bottom:1px solid var(--line);padding-bottom:16px}
+.brief .memo dt{font:500 .72rem/1.9 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.brief .memo dd{margin:0}
+.recs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;counter-reset:r}
+.recs li{display:grid;grid-template-columns:34px 1fr;gap:10px}
+.recs li::before{counter-increment:r;content:counter(r);font:800 1.4rem/1.2 var(--f-display);color:var(--plasma)}
+.passport{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font:500 .78rem var(--f-mono)}
+.passport span{background:var(--plasma-bg);color:var(--plasma);padding:6px 9px;border-radius:3px}
+.passport em{font-style:normal;color:var(--muted)}
+
+ol.src{font-size:.85rem;padding-left:1.4em;display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+footer{padding-block:32px 56px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+@media (prefers-reduced-motion:no-preference){.cell .sym{transition:text-shadow .4s}.cell:hover .sym{text-shadow:0 0 18px var(--glow)}}
+
+/* globe band: a deliberate night-sky panel in both themes */
+.globe-band{background:#050b17;color:#dfe7f6;border-top:0;
+  margin-left:calc(-1 * max(16px, env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px, env(safe-area-inset-right,0px)));
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));
+  background-image:radial-gradient(ellipse at 50% 55%, #0d1d3a 0%, #050b17 62%)}
+.globe-band h2{color:#f2f6ff}
+.globe-band p{color:#b9c6de}
+.globe-band .gb-label{color:#8ea3c7}
+.globe-band a{color:#ffb27a}
+.gb-inner{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.gb-steps{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.gb-step{font:500 .8rem var(--f-mono);letter-spacing:.03em;color:#cdd8ee;background:rgba(255,255,255,.04);
+  border:1px solid rgba(160,185,230,.22);border-radius:999px;padding:7px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.gb-step:hover{border-color:rgba(200,215,245,.55)}
+.gb-step[aria-pressed="true"]{background:#e8eefc;color:#071022;border-color:#e8eefc}
+.gb-step:focus-visible{outline:2px solid #ffb27a;outline-offset:2px}
+.gb-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.gb-trace{border-color:rgba(255,138,61,.6);color:#ffb27a}
+.gb-trace[aria-pressed="true"]{background:#ff8a3d;color:#1a0b02;border-color:#ff8a3d}
+.gb-stage{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+@media (max-width:900px){.gb-stage{grid-template-columns:1fr}}
+.gb-canvas-wrap{position:relative;min-width:0}
+#globe{display:block;width:100%;height:min(640px,82vw);min-height:360px;cursor:grab;touch-action:none}
+#globe:active{cursor:grabbing}
+.gb-legend{position:absolute;top:8px;left:0;background:rgba(5,11,23,.72);border:1px solid rgba(160,185,230,.18);
+  padding:12px 14px;font:400 .74rem/1.5 var(--f-mono);color:#cdd8ee;backdrop-filter:blur(4px);max-width:220px}
+.gb-legend .gb-lh{font-weight:500;color:#f2f6ff;margin-bottom:6px}
+.gb-legend dl{display:grid;grid-template-columns:auto auto;gap:2px 12px;margin:0 0 8px}
+.gb-legend dt{color:#8ea3c7}.gb-legend dd{margin:0;text-align:right;color:#f2f6ff;font-variant-numeric:tabular-nums}
+.gb-lline{display:flex;align-items:center;gap:8px;color:#b9c6de !important;font-size:.72rem}
+.ln-solid,.ln-dash{display:inline-block;width:22px;height:0;border-top:2px solid #cdd8ee}
+.ln-dash{border-top:2px dashed #b39dff}
+.ln-dot{display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid #cdd8ee}
+.rk{font-style:normal;padding:0 4px;border-radius:2px}
+.rk-h{color:#ff6b6b}.rk-m{color:#ffc857}.rk-l{color:#5fd19c}
+.gb-hint{position:absolute;bottom:6px;right:4px;font:400 .72rem var(--f-mono);color:#6f84aa !important}
+@media (max-width:640px){.gb-legend{position:static;max-width:none;margin-bottom:8px}}
+.gb-panel{background:rgba(255,255,255,.035);border:1px solid rgba(160,185,230,.18);padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0;min-height:320px}
+.gb-panel .pk{font:500 .7rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:#8ea3c7}
+.gb-panel h3{color:#f2f6ff;font-size:1.25rem}
+.gb-panel p{font-size:.92rem;line-height:1.55}
+.gb-panel .sev{align-self:flex-start}
+.gb-panel table{font-size:.8rem;color:#cdd8ee}
+.gb-panel th{color:#8ea3c7;border-color:rgba(160,185,230,.15)}
+.gb-panel td{border-color:rgba(160,185,230,.12);padding:5px 6px}
+.gb-panel td.r{text-align:right;font-variant-numeric:tabular-nums;color:#f2f6ff}
+.gb-panel .bar{display:block;height:3px;background:currentColor;border-radius:2px;margin-top:3px;opacity:.85}
+.gb-panel ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:8px;font-size:.88rem;color:#cdd8ee}
+.gb-panel ol li::marker{color:#ff8a3d;font-family:var(--f-mono)}
+.gb-panel .sev.high{background:#3a1416;color:#ff7a7a}.gb-panel .sev.mid{background:#33280f;color:#ffc857}.gb-panel .sev.low{background:#10301f;color:#5fd19c}
+.gb-panel .back{align-self:flex-start;font:500 .75rem var(--f-mono);background:none;border:1px solid rgba(160,185,230,.3);color:#cdd8ee;padding:4px 10px;border-radius:999px;cursor:pointer}
+details.route{background:var(--surface);border:1px solid var(--line);padding:14px 18px}
+details.route summary{cursor:pointer;font-weight:600}
+details.route .chain{margin-top:16px}
+
+.why-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:32px;align-items:center}
+@media (max-width:820px){.why-grid{grid-template-columns:1fr}}
+.why-fig{margin:0;background:var(--surface);border:1px solid var(--line);padding:16px}
+.why-fig svg{display:block;width:100%;height:auto}
+.why-fig figcaption{font-size:.85rem;color:var(--muted);margin-top:8px}
+.why-side{display:flex;flex-direction:column;gap:22px;min-width:0}
+.melt{display:flex;flex-direction:column;gap:10px}
+.mrow{display:grid;grid-template-columns:84px 1fr 52px;gap:10px;align-items:center;font-size:.88rem}
+.mrow i{display:block;height:14px;width:var(--v);background:var(--line);border-radius:2px}
+.mrow b{font:600 .85rem var(--f-mono);text-align:right}
+.mrow.w span,.mrow.w b{color:var(--glow);font-weight:700}
+.mrow.w i{background:var(--glow);box-shadow:0 0 14px var(--glow)}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{border-top:3px solid var(--ink);padding-top:8px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile b{font:800 1.5rem/1.1 var(--f-display);font-stretch:90%}
+.tile span{font-size:.8rem;color:var(--muted)}
+@media (max-width:420px){.tiles{grid-template-columns:1fr}}
+.blocks{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.bgrid{display:grid;grid-template-columns:repeat(75,minmax(0,1fr));gap:2px;max-width:900px}
+.bgrid i{display:block;aspect-ratio:1;background:var(--glow);opacity:.85;border-radius:1px}
+@media (max-width:640px){.bgrid{grid-template-columns:repeat(30,minmax(0,1fr))}}
+.mats{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.mat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.mat-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mcell{border:1.5px solid var(--line);background:var(--surface);padding:10px 12px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.mcell .z{font:500 .75rem var(--f-mono);color:var(--muted)}
+.mcell .sym{font:900 2.2rem/1.05 var(--f-display);font-stretch:110%;color:var(--muted)}
+.mcell .nm{font-weight:600;font-size:.88rem}
+.mcell .use{font-size:.78rem;color:var(--muted)}
+.mcell.on{border-color:var(--glow);border-width:2px}
+.mcell.on .sym{color:var(--glow)}
+.rgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.rgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.rgrid{grid-template-columns:1fr}}
+.rcard{background:var(--surface);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.rcard .rnum{font:900 2.4rem/1 var(--f-display);font-stretch:85%}
+.rcard p{font-size:.86rem;color:var(--muted)}
+.rcard .rplace{margin-top:auto;font:500 .72rem var(--f-mono);letter-spacing:.05em;text-transform:uppercase}
+
+.pp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;margin-top:8px}
+.pp-step{position:relative;background:var(--plasma-bg);color:var(--plasma);padding:16px 12px 16px 22px;display:flex;flex-direction:column;gap:2px;min-width:0;
+  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,0 100%,14px 50%)}
+.pp-step:first-child{clip-path:polygon(0 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,0 100%);padding-left:14px}
+.pp-step b{font:700 .95rem var(--f-display);color:var(--ink)}
+.pp-step span{font:500 .72rem var(--f-mono);letter-spacing:.03em}
+.pp-gap{background:var(--gap-bg);color:var(--glow);outline:2px dashed var(--glow);outline-offset:-6px}
+.pp-end{background:var(--plasma);color:var(--surface)}
+.pp-end b{color:var(--surface)}
+@media (max-width:760px){.pp{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:6px}}
+@media (max-width:420px){.pp{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pp-note{font-size:.9rem;color:var(--muted)}
+.recs4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:10px}
+@media (max-width:900px){.recs4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.recs4{grid-template-columns:1fr}}
+.rc{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--plasma);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.rcn{font:900 2rem/1 var(--f-display);color:var(--plasma)}
+.rc b{font-size:1rem}
+.rc p{font-size:.86rem;color:var(--muted)}
+.pp-limit{font-size:.88rem;color:var(--muted)}
+
+.sm{margin:0;background:var(--surface);border:1px solid var(--line);padding:22px 22px 16px}
+.sm-scroll{overflow-x:auto}
+.sm svg{display:block;width:100%;min-width:900px;height:auto}
+.sm .lanes rect{fill:var(--bg);opacity:.7}
+.sm .lhead text{font:500 11px var(--f-mono);letter-spacing:.08em;fill:var(--muted)}
+.sm .lhead .ln{font-weight:700;fill:var(--ink)}
+.sm .gaplabel{font:600 10.5px var(--f-mono);letter-spacing:.14em;fill:var(--glow)}
+.sm .node rect:first-child{fill:var(--surface);stroke:var(--line);stroke-width:1}
+.sm .node .rb.high{fill:var(--high)}.sm .node .rb.mid{fill:var(--mid)}.sm .node .rb.low{fill:var(--low)}
+.sm .node .nt{font:600 13px var(--f-body);fill:var(--ink)}
+.sm .node .ns{font:400 11px var(--f-body);fill:var(--muted)}
+.sm .node.pl rect:first-child{fill:var(--plasma-bg);stroke:var(--plasma)}
+.sm .node.pl.solid rect:first-child{fill:var(--plasma)}
+.sm .node.pl.solid .nt,.sm .node.pl.solid .ns{fill:var(--surface)}
+.sm-legend{margin-top:14px}
+.legend i.dash{background:none;border-top:2px dashed var(--glow);height:0;width:16px;border-radius:0;vertical-align:3px}
+.loopfig{margin:0 auto;max-width:820px;display:flex;flex-direction:column;gap:6px}
+.loopfig svg{display:block;width:100%;height:auto}
+.loopfig figcaption{font-size:.88rem;color:var(--muted);text-align:center}
+.lp rect{fill:var(--surface);stroke:var(--line)}
+.lp.hi rect{stroke:var(--glow);stroke-width:1.5}
+.lp.red rect{fill:var(--high-bg);stroke:var(--high);stroke-width:1.5}
+.lpn{font:900 26px var(--f-display);fill:var(--glow)}
+.lp.red .lpn{fill:var(--high)}
+.lpt{font:600 14px var(--f-body);fill:var(--ink)}
+.lps{font:400 11.5px var(--f-mono);fill:var(--muted)}
+.lp-mid{font:800 20px var(--f-display);fill:var(--ink)}
+.lp-fb{font:500 11px var(--f-mono);fill:var(--high)}
+
+.hero-band{background:#050b17;color:#dfe7f6;
+  background-image:radial-gradient(ellipse 60% 70% at 82% 30%, rgba(255,138,61,.20), transparent 60%),radial-gradient(ellipse at 20% 120%, #0d1d3a 0%, #050b17 60%);
+  margin-left:calc(-1 * max(16px, env(safe-area-inset-left,0px)));margin-right:calc(-1 * max(16px, env(safe-area-inset-right,0px)));
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px));padding-block:64px 48px}
+.hb-inner{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+.hb-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:center}
+.hb-text{display:flex;flex-direction:column;gap:18px;min-width:0}
+.hb-eyebrow{font:500 .75rem var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:#ff9a57}
+.hero-band h1{font-size:clamp(3rem,9vw,6.4rem);font-weight:900;font-stretch:78%;letter-spacing:-.02em;line-height:.92;color:#f4f7ff}
+.hb-thesis{font-size:1.15rem;line-height:1.6;max-width:56ch;color:#b9c6de}
+.hb-by{font:400 .8rem var(--f-mono);color:#7d90b3}
+.hb-cell{width:210px;aspect-ratio:1/1.12;border:2px solid #ff8a3d;padding:16px 18px;display:flex;flex-direction:column;justify-content:space-between;
+  background:linear-gradient(160deg, rgba(255,138,61,.14), rgba(255,138,61,.02));box-shadow:0 0 60px rgba(255,138,61,.25), inset 0 0 30px rgba(255,138,61,.08)}
+.hb-cell .z{font:500 1rem var(--f-mono);color:#ffb27a}
+.hb-cell .sym{font:900 7.5rem/0.9 var(--f-display);font-stretch:110%;color:#ff8a3d;text-shadow:0 0 28px rgba(255,138,61,.7)}
+.hb-cell .nm{font-weight:600;font-size:1.05rem;color:#f4f7ff}
+.hb-cell .mp{font:400 .74rem var(--f-mono);color:#ffb27a}
+@media (prefers-reduced-motion:no-preference){.hb-cell .sym{animation:wglow 4s ease-in-out infinite}}
+@keyframes wglow{50%{text-shadow:0 0 46px rgba(255,138,61,.95)}}
+@media (max-width:720px){.hb-top{grid-template-columns:1fr}.hb-cell{width:150px}.hb-cell .sym{font-size:5rem}}
+.hb-chain{display:flex;align-items:center;gap:0;max-width:820px}
+.hc{display:flex;flex-direction:column;align-items:center;gap:8px;flex:0 0 auto}
+.hc i{width:14px;height:14px;border-radius:50%;background:#ff8a3d;box-shadow:0 0 12px rgba(255,138,61,.8)}
+.hc span{font:500 .72rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:#cdd8ee}
+.hc.dim i{background:transparent;border:2px solid #4a5c80;box-shadow:none}
+.hc.dim span{color:#6f84aa}
+.hc.end i{background:#b39dff;box-shadow:0 0 12px rgba(179,157,255,.8)}
+.hc-l{flex:1;height:2px;background:#ff8a3d;margin:0 6px 22px;min-width:20px}
+.hc-l.dim{background:#2c3a57}
+.hc-l.gap{background:none;border-top:2px dashed #ff8a3d;height:0;position:relative}
+.hc-l.gap b{position:absolute;left:50%;top:-14px;transform:translateX(-50%);font:700 .85rem var(--f-mono);color:#050b17;background:#ff8a3d;border-radius:50%;width:22px;height:22px;display:grid;place-items:center}
+.hb-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;border-top:1px solid rgba(160,185,230,.2);padding-top:24px}
+.hb-stats div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.hb-stats b{font:800 2.6rem/1 var(--f-display);font-stretch:85%;color:#f4f7ff}
+.hb-stats b.hot{color:#ff8a3d;text-shadow:0 0 20px rgba(255,138,61,.6)}
+.hb-stats span{font-size:.88rem;color:#9fb0cf}
+@media (max-width:640px){.hb-stats{grid-template-columns:1fr}}
+</style>
+
+<header class="hero-band">
+  <div class="hb-inner">
+    <div class="hb-top">
+      <div class="hb-text">
+        <p class="hb-eyebrow">Mapping the human cost of fusion energy materials · Iteration 1</p>
+        <h1>Behind the<br>Divertor</h1>
+        <p class="hb-thesis">The hottest wall in a fusion reactor is armoured with tungsten. Trace it back and the trail runs through Chinese farmland, Myanmar's armed-group territory and a Rwandan exporter named by UN investigators. Then it stops.</p>
+        <p class="hb-by">Chelsea Zhao · Beyond the Brand · NYU · November 2026</p>
+      </div>
+      <div class="hb-cell" aria-label="Tungsten, element 74">
+        <span class="z">74</span>
+        <span class="sym">W</span>
+        <span class="nm">Tungsten</span>
+        <span class="mp">183.84 · melts 3,422 °C</span>
+      </div>
+    </div>
+
+    <div class="hb-chain" role="img" aria-label="Five stages from mine to reactor; the chain breaks between refining and fusion-grade powder.">
+      <div class="hc"><i></i><span>Mine</span></div>
+      <div class="hc-l"></div>
+      <div class="hc"><i></i><span>Trade</span></div>
+      <div class="hc-l"></div>
+      <div class="hc"><i></i><span>Refine</span></div>
+      <div class="hc-l gap"><b>?</b></div>
+      <div class="hc dim"><i></i><span>Powder</span></div>
+      <div class="hc-l dim"></div>
+      <div class="hc end"><i></i><span>Reactor</span></div>
+    </div>
+
+    <div class="hb-stats">
+      <div><b class="num">~300,000</b><span>tungsten blocks armour ITER's divertor [1]</span></div>
+      <div><b class="num">79%</b><span>of 2025 world mine output came from China [5]</span></div>
+      <div><b class="num hot">0</b><span>public records linking a fusion component to a mine</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wide stack">
+    <div class="wrap stack" style="margin:0 auto 8px">
+      <p class="label">1 · Why tungsten</p>
+      <h2>The metal that faces the plasma</h2>
+    </div>
+
+    <div class="why-grid">
+      <figure class="why-fig">
+        <svg viewBox="0 0 480 380" role="img" aria-label="Cross-section of a tokamak: a D-shaped plasma inside the vacuum vessel, with the tungsten-armoured divertor at the bottom catching heat and helium ash.">
+          <defs>
+            <radialGradient id="pg" cx="50%" cy="45%" r="55%">
+              <stop offset="0" style="stop-color:#ffe0f4"/>
+              <stop offset=".45" style="stop-color:#c86bf0"/>
+              <stop offset="1" style="stop-color:#6a3fd6;stop-opacity:.15"/>
+            </radialGradient>
+          </defs>
+          <!-- vessel -->
+          <path d="M150 30 C 290 30, 330 110, 330 190 C 330 270, 290 340, 170 340 L 150 340 C 120 340, 110 300, 110 190 C 110 80, 120 30, 150 30 Z" style="fill:var(--surface);stroke:var(--ink);stroke-width:3"/>
+          <!-- field lines -->
+          <g fill="none" style="stroke:var(--line);stroke-width:1.2">
+            <path d="M155 60 C 270 60, 300 130, 300 190 C 300 250, 260 290, 205 300"/>
+            <path d="M155 60 C 140 60, 135 120, 135 190 C 135 250, 150 290, 205 300"/>
+          </g>
+          <!-- plasma -->
+          <path d="M175 75 C 265 75, 285 135, 285 185 C 285 240, 250 275, 205 285 C 165 275, 150 240, 150 185 C 150 120, 155 75, 175 75 Z" style="fill:url(#pg)"/>
+          <!-- divertor legs -->
+          <g style="stroke:var(--glow);stroke-width:2;fill:none;stroke-dasharray:3 3">
+            <path d="M205 285 L 182 322"/><path d="M205 285 L 232 322"/>
+          </g>
+          <!-- divertor targets with monoblocks -->
+          <g>
+            <path d="M160 300 L 182 330 L 205 312 L 228 330 L 252 300" style="fill:none;stroke:var(--ink);stroke-width:2"/>
+            <g style="fill:var(--glow)">
+              <rect x="164" y="303" width="5" height="5"/><rect x="170" y="311" width="5" height="5"/><rect x="176" y="319" width="5" height="5"/>
+              <rect x="186" y="324" width="5" height="5"/><rect x="194" y="318" width="5" height="5"/>
+              <rect x="212" y="318" width="5" height="5"/><rect x="220" y="324" width="5" height="5"/>
+              <rect x="231" y="319" width="5" height="5"/><rect x="237" y="311" width="5" height="5"/><rect x="243" y="303" width="5" height="5"/>
+            </g>
+            <ellipse cx="206" cy="330" rx="58" ry="14" style="fill:var(--glow);opacity:.18"/>
+          </g>
+          <!-- labels -->
+          <g style="font:500 12px var(--f-body)">
+            <line x1="285" y1="150" x2="350" y2="110" style="stroke:var(--muted)"/>
+            <text x="352" y="104" style="fill:var(--ink);font-weight:600">Plasma</text>
+            <text x="352" y="120" style="fill:var(--muted)">150 million °C</text>
+            <line x1="252" y1="312" x2="350" y2="300" style="stroke:var(--muted)"/>
+            <text x="352" y="294" style="fill:var(--glow);font-weight:700">Divertor</text>
+            <text x="352" y="310" style="fill:var(--muted)">tungsten armour</text>
+            <line x1="110" y1="190" x2="90" y2="190" style="stroke:var(--muted)"/>
+            <text x="8" y="194" style="fill:var(--ink);font-weight:600">Vessel wall</text>
+            <text x="150" y="368" style="fill:var(--muted);font:500 11px var(--f-mono)">heat + helium "ash" drain down ↓</text>
+          </g>
+        </svg>
+        <figcaption>Inside a tokamak. The divertor is the reactor's exhaust, and tungsten is its armour [1].</figcaption>
+      </figure>
+
+      <div class="why-side">
+        <div class="melt" role="img" aria-label="Melting points: tungsten 3,422 °C, iron 1,538 °C, copper 1,085 °C, aluminium 660 °C.">
+          <p class="label">Melting point, °C</p>
+          <div class="mrow w"><span>Tungsten</span><i style="--v:97.8%"></i><b class="num">3,422</b></div>
+          <div class="mrow"><span>Iron</span><i style="--v:43.9%"></i><b class="num">1,538</b></div>
+          <div class="mrow"><span>Copper</span><i style="--v:31%"></i><b class="num">1,085</b></div>
+          <div class="mrow"><span>Aluminium</span><i style="--v:18.9%"></i><b class="num">660</b></div>
+        </div>
+        <div class="tiles">
+          <div class="tile"><b>×10</b><span>the heat a spacecraft meets on re-entry [1]</span></div>
+          <div class="tile"><b>~300k</b><span>tungsten blocks in ITER's divertor [1]</span></div>
+          <div class="tile"><b>Wears out</b><span>replaced during a reactor's life [3]</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="blocks" role="img" aria-label="Grid of 300 small squares, each standing for 1,000 tungsten monoblocks.">
+      <div class="bgrid" id="bgrid"></div>
+      <p class="label">Each square = 1,000 tungsten monoblocks in ITER</p>
+    </div>
+
+    <div class="mats">
+      <p class="label">What a fusion reactor needs</p>
+      <div class="mat-row">
+        <div class="mcell"><span class="z">3</span><span class="sym">Li</span><span class="nm">Lithium-6</span><span class="use">breeds fuel</span></div>
+        <div class="mcell"><span class="z">4</span><span class="sym">Be</span><span class="nm">Beryllium</span><span class="use">multiplies neutrons</span></div>
+        <div class="mcell"><span class="z">39</span><span class="sym">Y</span><span class="nm">Yttrium</span><span class="use">superconducting magnets</span></div>
+        <div class="mcell on"><span class="z">74</span><span class="sym">W</span><span class="nm">Tungsten</span><span class="use">faces the plasma</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <div class="wide stack">
+    <div class="wrap stack" style="margin:0 auto 8px">
+      <p class="label">2 · Systems map</p>
+      <h2>From ore to reactor, in five stages</h2>
+      <p>Colour marks human-rights risk. The orange band is where the public record stops.</p>
+    </div>
+
+    <figure class="sm">
+      <div class="sm-scroll">
+        <svg viewBox="0 0 1120 450" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Systems map of the tungsten supply chain: mines, traders, APT refiners, fusion-grade powder makers and ITER, with a traceability gap between refiners and powder makers.">
+          <defs>
+            <marker id="sa" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--muted)"/></marker>
+            <marker id="sar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--high)"/></marker>
+            <marker id="sag" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--glow)"/></marker>
+            <marker id="sap" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--plasma)"/></marker>
+          </defs>
+
+          <!-- lanes -->
+          <g class="lanes">
+            <rect x="0" y="28" width="190" height="422" rx="6"/>
+            <rect x="225" y="28" width="190" height="422" rx="6"/>
+            <rect x="450" y="28" width="190" height="422" rx="6"/>
+            <rect x="720" y="28" width="180" height="422" rx="6"/>
+            <rect x="930" y="28" width="190" height="422" rx="6"/>
+          </g>
+          <g class="lhead">
+            <text x="10" y="16"><tspan class="ln">1</tspan>  MINE</text>
+            <text x="235" y="16"><tspan class="ln">2</tspan>  TRADE &amp; TRANSIT</text>
+            <text x="460" y="16"><tspan class="ln">3</tspan>  REFINE TO APT</text>
+            <text x="730" y="16"><tspan class="ln">4</tspan>  FUSION-GRADE POWDER</text>
+            <text x="940" y="16"><tspan class="ln">5</tspan>  REACTOR</text>
+          </g>
+
+          <!-- gap band -->
+          <rect x="658" y="28" width="44" height="422" rx="6" style="fill:var(--gap-bg)"/>
+          <line x1="680" y1="40" x2="680" y2="440" style="stroke:var(--glow);stroke-width:1.5;stroke-dasharray:2 6;stroke-linecap:round"/>
+          <text x="680" y="285" text-anchor="middle" transform="rotate(-90 680 285)" class="gaplabel">NO PUBLIC RECORD</text>
+
+          <!-- flows -->
+          <g fill="none" stroke-width="1.8" stroke-linecap="round">
+            <path d="M190,65 L446,65" style="stroke:var(--mid)" marker-end="url(#sa)"/>
+            <path d="M190,135 C320,135 320,75 446,75" style="stroke:var(--high)" marker-end="url(#sar)"/>
+            <path d="M190,222 C207,222 207,205 221,205" style="stroke:var(--high)" marker-end="url(#sar)"/>
+            <path d="M190,228 C209,228 206,275 221,275" style="stroke:var(--high)" marker-end="url(#sar)"/>
+            <path d="M190,234 C212,234 204,355 221,355" style="stroke:var(--high)" marker-end="url(#sar)"/>
+            <path d="M415,200 C433,200 431,85 446,85" style="stroke:var(--high)" marker-end="url(#sar)"/>
+            <path d="M415,210 L446,210" style="stroke:var(--high)" marker-end="url(#sar)"/>
+            <path d="M415,275 C435,275 431,95 446,95" style="stroke:var(--mid)" marker-end="url(#sa)"/>
+            <path d="M190,305 C206,305 208,315 225,315 L415,315 C434,315 431,220 446,220" style="stroke:var(--mid)" marker-end="url(#sa)"/>
+            <path d="M190,385 C206,385 208,410 225,410 L415,410 C434,410 431,370 446,370" style="stroke:var(--low)" marker-end="url(#sa)"/>
+            <path d="M415,355 L446,355" style="stroke:var(--mid)" marker-end="url(#sa)"/>
+          </g>
+          <g fill="none" stroke-width="1.8" stroke-dasharray="5 5" style="stroke:var(--glow)">
+            <path d="M640,65 L716,65" marker-end="url(#sag)"/>
+            <path d="M640,75 C682,75 676,200 716,200" marker-end="url(#sag)"/>
+            <path d="M640,205 C682,205 676,75 716,75" marker-end="url(#sag)"/>
+            <path d="M640,355 L716,355" marker-end="url(#sag)"/>
+          </g>
+          <g fill="none" stroke-width="1.8" style="stroke:var(--plasma)">
+            <path d="M900,65 C918,65 912,125 926,125" marker-end="url(#sap)"/>
+            <path d="M900,205 C918,205 912,140 926,140" marker-end="url(#sap)"/>
+            <path d="M900,355 C920,355 910,152 926,152" marker-end="url(#sap)"/>
+            <path d="M1025,163 L1025,246" marker-end="url(#sap)"/>
+          </g>
+
+          <!-- nodes: x,y, risk bar, title, sub -->
+          <g class="node"><rect x="0" y="40" width="190" height="50" rx="6"/><rect class="rb mid" x="0" y="40" width="5" height="50" rx="2"/><text class="nt" x="16" y="61">China · Jiangxi, Hunan</text><text class="ns" x="16" y="78">79% of mine output</text></g>
+          <g class="node"><rect x="0" y="110" width="190" height="50" rx="6"/><rect class="rb high" x="0" y="110" width="5" height="50" rx="2"/><text class="nt" x="16" y="131">Myanmar · Shan State</text><text class="ns" x="16" y="148">armed-group mines</text></g>
+          <g class="node"><rect x="0" y="200" width="190" height="50" rx="6"/><rect class="rb high" x="0" y="200" width="5" height="50" rx="2"/><text class="nt" x="16" y="221">E. DRC → Rwanda</text><text class="ns" x="16" y="238">conflict mineral, smuggling</text></g>
+          <g class="node"><rect x="0" y="280" width="190" height="50" rx="6"/><rect class="rb mid" x="0" y="280" width="5" height="50" rx="2"/><text class="nt" x="16" y="301">Vietnam · Nui Phao</text><text class="ns" x="16" y="318">pollution, fines</text></g>
+          <g class="node"><rect x="0" y="360" width="190" height="50" rx="6"/><rect class="rb low" x="0" y="360" width="5" height="50" rx="2"/><text class="nt" x="16" y="381">Korea, Spain, Portugal</text><text class="ns" x="16" y="398">regulated mines</text></g>
+
+          <g class="node"><rect x="225" y="180" width="190" height="50" rx="6"/><rect class="rb high" x="225" y="180" width="5" height="50" rx="2"/><text class="nt" x="241" y="201">UAE free-zone traders</text><text class="ns" x="241" y="218">Novacore, Halcyon</text></g>
+          <g class="node"><rect x="225" y="250" width="190" height="50" rx="6"/><rect class="rb mid" x="225" y="250" width="5" height="50" rx="2"/><text class="nt" x="241" y="271">Hong Kong · Tanzania</text><text class="ns" x="241" y="288">transit hubs</text></g>
+          <g class="node"><rect x="225" y="330" width="190" height="50" rx="6"/><rect class="rb mid" x="225" y="330" width="5" height="50" rx="2"/><text class="nt" x="241" y="351">Global traders</text><text class="ns" x="241" y="368">e.g. Traxys Europe</text></g>
+
+          <g class="node"><rect x="450" y="40" width="190" height="50" rx="6"/><rect class="rb mid" x="450" y="40" width="5" height="50" rx="2"/><text class="nt" x="466" y="61">China refiners</text><text class="ns" x="466" y="78">70–85% of world APT</text></g>
+          <g class="node"><rect x="450" y="180" width="190" height="50" rx="6"/><rect class="rb mid" x="450" y="180" width="5" height="50" rx="2"/><text class="nt" x="466" y="201">Masan · Vietnam</text><text class="ns" x="466" y="218">largest outside China</text></g>
+          <g class="node"><rect x="450" y="330" width="190" height="50" rx="6"/><rect class="rb low" x="450" y="330" width="5" height="50" rx="2"/><text class="nt" x="466" y="351">Austria · USA refiners</text><text class="ns" x="466" y="368">Wolfram Bergbau, GTP</text></g>
+
+          <g class="node"><rect x="720" y="40" width="180" height="50" rx="6"/><text class="nt" x="734" y="61">A.L.M.T. · Japan</text><text class="ns" x="734" y="78">ITER monoblocks</text></g>
+          <g class="node"><rect x="720" y="180" width="180" height="50" rx="6"/><text class="nt" x="734" y="201">AT&amp;M · China (SOE)</text><text class="ns" x="734" y="218">ITER monoblocks</text></g>
+          <g class="node"><rect x="720" y="330" width="180" height="50" rx="6"/><text class="nt" x="734" y="351">Plansee · Austria</text><text class="ns" x="734" y="368">divertor technology</text></g>
+
+          <g class="node pl"><rect x="930" y="110" width="190" height="52" rx="6"/><text class="nt" x="944" y="132">Divertor targets</text><text class="ns" x="944" y="149">Hitachi, MHI, RI, Alsymex</text></g>
+          <g class="node pl solid"><rect x="930" y="250" width="190" height="52" rx="6"/><text class="nt" x="944" y="272">ITER</text><text class="ns" x="944" y="289">~300,000 monoblocks</text></g>
+        </svg>
+      </div>
+      <div class="legend sm-legend">
+        <span><i style="background:var(--high)"></i>High risk</span>
+        <span><i style="background:var(--mid)"></i>Medium</span>
+        <span><i style="background:var(--low)"></i>Lower</span>
+        <span><i class="dash"></i>Possible route, no public record</span>
+        <span><i style="background:var(--plasma)"></i>Fusion contracts</span>
+      </div>
+    </figure>
+
+    <div class="wrap stack" style="margin:28px auto 0">
+      <h3>The loop that pushes risk upstream</h3>
+    </div>
+    <figure class="loopfig">
+      <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Feedback loop: China licenses exports, prices jump outside China, buyers seek non-Chinese ore, ore from conflict areas gains value, which feeds back into buyers seeking non-Chinese ore.">
+        <defs>
+          <marker id="la" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--glow)"/></marker>
+          <marker id="lr" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(--high)"/></marker>
+        </defs>
+        <g fill="none" stroke-width="2.2" style="stroke:var(--glow)">
+          <path d="M470,62 C590,70 640,110 645,148" marker-end="url(#la)"/>
+          <path d="M645,258 C640,300 590,330 480,340" marker-end="url(#la)"/>
+          <path d="M280,340 C170,330 120,300 115,258" marker-end="url(#la)"/>
+        </g>
+        <!-- reinforcing feedback 4 -> 3 -->
+        <path d="M200,256 C215,285 245,300 276,312" fill="none" stroke-width="2.4" style="stroke:var(--high)" marker-end="url(#lr)"/>
+        <text x="380" y="196" text-anchor="middle" class="lp-mid">Risk moves</text>
+        <text x="380" y="216" text-anchor="middle" class="lp-mid">upstream</text>
+        <text x="232" y="300" text-anchor="end" class="lp-fb">feeds back</text>
+
+        <g class="lp">
+          <rect x="280" y="22" width="200" height="74" rx="8"/>
+          <text class="lpn" x="296" y="52">1</text><text class="lpt" x="320" y="49">China licenses</text><text class="lpt" x="320" y="66">tungsten exports</text><text class="lps" x="320" y="84">Feb 2025 · 15 firms [6]</text>
+        </g>
+        <g class="lp">
+          <rect x="545" y="150" width="200" height="104" rx="8"/>
+          <text class="lpn" x="561" y="180">2</text><text class="lpt" x="585" y="177">Prices jump</text><text class="lpt" x="585" y="194">outside China</text><text class="lps" x="585" y="212">+200% in 2025 [7]</text>
+        </g>
+        <g class="lp hi">
+          <rect x="270" y="304" width="225" height="74" rx="8"/>
+          <text class="lpn" x="296" y="334">3</text><text class="lpt" x="320" y="331">Buyers seek</text><text class="lpt" x="320" y="348">non-Chinese ore</text><text class="lps" x="320" y="366">US ban from Jan 2027 [8]</text>
+        </g>
+        <g class="lp red">
+          <rect x="15" y="150" width="200" height="104" rx="8"/>
+          <text class="lpn" x="31" y="180">4</text><text class="lpt" x="55" y="177">Conflict-area</text><text class="lpt" x="55" y="194">ore gains value</text><text class="lps" x="55" y="212">Myanmar, Great Lakes</text><text class="lps" x="55" y="228">[12][13]</text>
+        </g>
+      </svg>
+      <figcaption>The way out of the loop: well-governed new mines, such as Korea's Sangdong, coming online fast enough [16].</figcaption>
+    </figure>
+  </div>
+</section>
+
+
+<section>
+  <div class="wide stack">
+    <div class="wrap stack" style="margin:0 auto 8px"><p class="label">3 · Human rights risks</p>
+    <h2>What happens at the mine end</h2></div>
+    <div class="rgrid">
+      <div class="rcard"><span class="sev high">Conflict</span><b class="rnum">195 t</b><p>of tin, tantalum and tungsten ore smuggled from Goma into Rwanda in one week of March 2025, UN experts say [12].</p><span class="rplace">Eastern Congo → Rwanda</span></div>
+      <div class="rcard"><span class="sev high">Armed groups</span><b class="rnum">×3</b><p>China's tungsten ore imports, 2023–2025, as Myanmar supply returned. One new mine runs with the United Wa State Army [13][14].</p><span class="rplace">Shan State, Myanmar</span></div>
+      <div class="rcard"><span class="sev mid">Health</span><b class="rnum">73%</b><p>of children near one Ganzhou tungsten mine face unacceptable health risks from heavy metals [9].</p><span class="rplace">Southern Jiangxi, China</span></div>
+      <div class="rcard"><span class="sev mid">Pollution</span><b class="rnum">$22k</b><p>fine for serious environmental, water and land violations at the largest mine outside China [15].</p><span class="rplace">Nui Phao, Vietnam</span></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="globe-band" id="trace">
+  <div class="gb-inner">
+    <div class="wrap stack">
+      <p class="label gb-label">4 · Tracing it in Sayari</p>
+      <h2>Where the tungsten moves</h2>
+      <p>Every line is a trade corridor from Sayari's customs records: tungsten ore (HS 2611) and APT (HS 2841.80), 2019 to October 2026. Thicker lines and denser traffic mean more shipment records. Dashed violet lines are ITER contracts, which leave no trade record. Pick a stage, or follow one route.</p>
+    </div>
+    <div class="gb-steps" role="group" aria-label="Choose a stage">
+      <button type="button" class="gb-step" data-stage="all" aria-pressed="true"><span class="gb-dot" style="background:#e8eefc"></span>All stages</button>
+      <button type="button" class="gb-step" data-stage="1" aria-pressed="false"><span class="gb-dot" style="background:#ff8a3d"></span>1 · Mine</button>
+      <button type="button" class="gb-step" data-stage="2" aria-pressed="false"><span class="gb-dot" style="background:#ff5c7a"></span>2 · Trade</button>
+      <button type="button" class="gb-step" data-stage="3" aria-pressed="false"><span class="gb-dot" style="background:#ffd166"></span>3 · Refine</button>
+      <button type="button" class="gb-step" data-stage="4" aria-pressed="false"><span class="gb-dot" style="background:#6fe3c6"></span>4 · Powder</button>
+      <button type="button" class="gb-step" data-stage="5" aria-pressed="false"><span class="gb-dot" style="background:#b39dff"></span>5 · Reactor</button>
+      <button type="button" class="gb-step gb-trace" data-stage="trace" aria-pressed="false">Follow one route →</button>
+    </div>
+    <div class="gb-stage">
+      <div class="gb-canvas-wrap">
+        <canvas id="globe" role="img" aria-label="Rotating globe showing tungsten trade corridors from mines in Rwanda, China, Russia, Australia and elsewhere, through traders in the UAE, Hong Kong and Luxembourg, to refiners in Vietnam, China, Austria and the US, then APT to Germany and Japan, and component contracts ending at ITER in France."></canvas>
+        <div class="gb-legend" id="legend">
+          <p class="gb-lh">Legend</p>
+          <dl>
+            <dt>Corridors</dt><dd id="lg-c">–</dd>
+            <dt>Shipment records</dt><dd id="lg-r">–</dd>
+            <dt>Places</dt><dd id="lg-p">–</dd>
+          </dl>
+          <p class="gb-lline"><span class="ln-solid"></span>Shipment records</p>
+          <p class="gb-lline"><span class="ln-dash"></span>Contract, no trade data</p>
+          <p class="gb-lline"><span class="ln-dot"></span>Risk: <i class="rk rk-h">high</i> <i class="rk rk-m">medium</i> <i class="rk rk-l">lower</i></p>
+        </div>
+        <p class="gb-hint">Drag to turn · tap a point</p>
+      </div>
+      <aside class="gb-panel" id="panel" aria-live="polite"></aside>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="callout stack">
+      <p><b>What this shows.</b> It does not show that tungsten from any one exporter reached a fusion reactor. It shows three things. First, ore from an exporter named in a UN conflict-minerals investigation was still moving through Gulf traders in 2026. Second, Sayari attached no warning to that exporter, so a buyer screening by risk flags alone would have passed it. Third, the route from mine to refiner is visible in trade data, but the route from refiner to fusion component is not visible anywhere.</p>
+    </div>
+    <details class="route">
+      <summary>Read the route company by company</summary>
+      <div class="chain">
+        <div class="hop"><div class="rail"><span class="dot"></span><span class="ln"></span></div><div class="body">
+          <p class="label">Exporter · Kigali, Rwanda</p>
+          <h3><a href="https://graph.sayari.com/resource/entity/WKC3rFluM3Fgj6NXzGwxTA" target="_blank" rel="noopener">Boss Mining Solution Ltd</a></h3>
+          <p>Named in a 2025 UN Group of Experts report, as reported by Reuters, for buying coltan smuggled from rebel-held Congo. It also holds a wolframite concession in Rwanda's Burera district [17].</p>
+          <p class="evidence">Sayari: 38 tungsten-ore shipments · risk flags: country-level only</p>
+        </div></div>
+        <div class="hop"><div class="rail"><span class="dot"></span><span class="ln"></span></div><div class="body">
+          <p class="label">Buyer · Ras Al Khaimah, UAE</p>
+          <h3><a href="https://graph.sayari.com/resource/entity/fc7RNdHZNcMUqXa0gnEjhA" target="_blank" rel="noopener">Novacore FZE</a></h3>
+          <p>Received tungsten ore from Boss Mining in July 2026. Sayari also records Novacore sending goods to Vietnam's Masan refinery and to Xiamen Tungsten in China; I could not confirm those shipments were tungsten.</p>
+          <p class="evidence">Sayari: 3 shipments, HS 261100, RWA → ARE, 15–28 Jul 2026</p>
+        </div></div>
+        <div class="hop"><div class="rail"><span class="dot"></span><span class="ln"></span></div><div class="body">
+          <p class="label">A parallel route · Dubai, UAE</p>
+          <h3><a href="https://graph.sayari.com/resource/entity/8eW5KQNdwT7LoG9R3s75kA" target="_blank" rel="noopener">Halcyon Inc</a></h3>
+          <p>Buys Rwandan tungsten ore (for example from <a href="https://graph.sayari.com/resource/entity/PgSzW4JGmOSkebhc9rXaLg" target="_blank" rel="noopener">Kanzamin Ltd</a> in July 2026) and has sold tungsten concentrate to Masan's refinery. Sayari flags Halcyon for exporting conflict minerals and goods on the US child- and forced-labour list.</p>
+          <p class="evidence">Sayari: 9 tungsten-ore shipments ARE → VNM to Vonfram Masan (Sep–Dec 2021), more via Tanzania in 2023</p>
+        </div></div>
+        <div class="hop"><div class="rail"><span class="dot"></span><span class="ln"></span></div><div class="body">
+          <p class="label">Refiner · Thai Nguyen, Vietnam</p>
+          <h3><a href="https://graph.sayari.com/resource/entity/uEVxlKok1dI7gxPTjVtYPg" target="_blank" rel="noopener">Vonfram Masan (Masan High-Tech Materials)</a></h3>
+          <p>Runs the APT refinery next to the Nui Phao mine, one of the largest outside China. Vietnam has supplied about a fifth of US tungsten imports [18]. In Sayari it is the single largest buyer of tungsten ore (803 records) and the largest shipper of APT (395 of 723 records).</p>
+          <p class="evidence">Sayari: top buyer in HS 2611; top shipper in HS 2841.80</p>
+        </div></div>
+        <div class="hop"><div class="rail"><span class="dot" style="border-color:var(--glow)"></span><span class="ln"></span></div><div class="body">
+          <p class="label">The trail stops</p>
+          <h3>Fusion-grade powder makers</h3>
+          <p>ITER's European tender allowed tungsten monoblocks from only two makers, Japan's A.L.M.T. and China's <a href="https://graph.sayari.com/resource/entity/RJjq6Ru7Me8L0pe7UHByBg" target="_blank" rel="noopener">AT&amp;M</a>, a state-owned firm that has worked on ITER since 2008 [19][20]. Neither publishes where its tungsten comes from. Vietnam ships APT to Japan (169 records), but no record names A.L.M.T. as the buyer.</p>
+        </div></div>
+      </div>
+    </details>
+    <p>Other Rwandan flows look different. <a href="https://graph.sayari.com/resource/entity/Een04A2rWthnNOCZsgxmQQ" target="_blank" rel="noopener">New Bugarama Mining</a>, the mine Fairphone and Austria's Wolfram Bergbau worked with to source audited, conflict-free tungsten [21], shipped to Hong Kong in July 2026. Banning the whole region would punish mines like this one. Fairphone's own reason for staying was that earlier boycotts left validated mines without buyers and pushed workers into informal mining [21].</p>
+  </div>
+</section>
+
+<section>
+  <div class="wide stack">
+    <div class="wrap stack" style="margin:0 auto 8px">
+      <p class="label">5 · Policy brief and tech proposal</p>
+      <h2>A material passport for fusion tungsten</h2>
+    </div>
+    <div class="pp" role="img" aria-label="Passport chain from mine tag to divertor target. Each handover signs the record; today the chain breaks between refiner and powder maker.">
+      <div class="pp-step"><b>Mine tag</b><span>origin</span></div>
+      <div class="pp-step"><b>Concentrate lot</b><span>WO₃ %</span></div>
+      <div class="pp-step"><b>APT batch</b><span>audited refiner</span></div>
+      <div class="pp-step pp-gap"><b>Powder lot</b><span>today: no record</span></div>
+      <div class="pp-step"><b>Monoblock</b><span>serial no.</span></div>
+      <div class="pp-step pp-end"><b>Divertor</b><span>ITER</span></div>
+    </div>
+    <p class="pp-note">Each handover signs the record. A missing signature shows exactly where the chain breaks.</p>
+    <div class="recs4">
+      <div class="rc"><span class="rcn">1</span><b>Require audited refiners</b><p>Buy only from refiners that pass RMAP and follow OECD due diligence.</p></div>
+      <div class="rc"><span class="rcn">2</span><b>Add origin to every lot</b><p>Engineers already track purity by lot [19]. Track the mine too.</p></div>
+      <div class="rc"><span class="rcn">3</span><b>Screen against investigations</b><p>Risk flags lag behind: Boss Mining had none. Check UN reports and journalism.</p></div>
+      <div class="rc"><span class="rcn">4</span><b>Stay in hard places</b><p>Keep buying from audited Great Lakes mines instead of boycotting the region.</p></div>
+    </div>
+    <p class="pp-limit"><b>Limit:</b> a passport proves custody, not working conditions, so it works only alongside audits.</p>
+  </div>
+</section>
+
+
+
+<style>
+/* 6 · Proposed regulation simulator */
+.sim{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.sim{grid-template-columns:1fr}}
+.sim-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.sim-tab{font:600 .9rem var(--f-body);padding:9px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;border-radius:4px}
+.sim-tab[aria-pressed="true"]{border-color:var(--glow);box-shadow:inset 0 -3px 0 var(--glow)}
+.sim-ctrl{background:var(--surface);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:16px}
+.sim-ctrl fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.sim-ctrl legend{font:500 .72rem/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:500 .85rem var(--f-body);padding:6px 10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:3px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.sim-ctrl input[type=range]{width:100%;accent-color:var(--glow)}
+.sim-ctrl .hint{font-size:.8rem;color:var(--muted)}
+.sim-ctrl output{font:600 .95rem var(--f-mono)}
+.sim-out{display:flex;flex-direction:column;gap:16px;min-width:0}
+.sim-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.cert{font:600 .72rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:3px}
+.cert.in_force{background:var(--low-bg);color:var(--low)}
+.cert.proposed_bill{background:var(--mid-bg);color:var(--mid)}
+.cert.reported{background:var(--high-bg);color:var(--high)}
+.sim-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.sim-cards{grid-template-columns:1fr}}
+.sim-cards div{background:var(--surface);border:1px solid var(--line);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.sim-cards b{font:900 1.9rem/1 var(--f-display);font-stretch:85%}
+.sim-cards span{font-size:.82rem;color:var(--muted)}
+.sim-tbl{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);font-size:.88rem}
+.sim-tbl th{text-align:left;font:500 .7rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line)}
+.sim-tbl td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.sim-tbl tr:last-child td{border-bottom:0}
+.sim-tbl .why{color:var(--muted);font-size:.82rem;margin-top:2px}
+.chip{display:inline-block;font:600 .7rem var(--f-mono);letter-spacing:.05em;text-transform:uppercase;padding:3px 7px;border-radius:3px;white-space:nowrap}
+.chip.blocked{background:var(--high-bg);color:var(--high)}
+.chip.watch{background:var(--mid-bg);color:var(--mid)}
+.chip.exempt{background:var(--plasma-bg);color:var(--plasma)}
+.chip.ok{background:var(--low-bg);color:var(--low)}
+.flag{display:block;margin-top:4px;font:500 .72rem var(--f-mono);color:var(--high)}
+.sim-scroll{overflow-x:auto}
+.sim-acts{background:var(--surface);border:1px solid var(--line);padding:14px 18px}
+.sim-acts ul{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+.sim-note{font-size:.82rem;color:var(--muted)}
+</style>
+
+<section id="simulator">
+  <div class="wide stack">
+    <div class="wrap stack" style="margin:0 auto 8px">
+      <p class="label">6 · Proposed regulation simulator</p>
+      <h2>What if the rule changes?</h2>
+      <p>New intelligence about a possible regulation arrives before the rule is final. This tool turns that intelligence into a scenario, drops it onto a supply chain, and shows who gets blocked, who is exempt, and how sure we are. Move the assumptions to see how much the answer depends on details that are not decided yet.</p>
+    </div>
+
+    <div class="sim-tabs" role="group" aria-label="Choose a scenario">
+      <button type="button" class="sim-tab" data-sc="tx" aria-pressed="true">Optical transceivers · FCC (reported)</button>
+      <button type="button" class="sim-tab" data-sc="w" aria-pressed="false">Tungsten · DFARS (in force)</button>
+    </div>
+
+    <div class="sim">
+      <div class="sim-ctrl" id="simCtrl" aria-label="Scenario assumptions"></div>
+      <div class="sim-out" aria-live="polite">
+        <div class="sim-head"><h3 id="simTitle"></h3><span id="simCert" class="cert"></span></div>
+        <p id="simDesc" class="sim-note" style="font-size:.92rem;color:var(--ink)"></p>
+        <div class="sim-cards" id="simCards"></div>
+        <div class="sim-scroll"><table class="sim-tbl"><thead><tr><th>Supplier / node</th><th>Made in</th><th>Result</th></tr></thead><tbody id="simRows"></tbody></table></div>
+        <div class="sim-acts"><b>What a buyer could do</b><ul id="simActs"></ul></div>
+        <p class="sim-note" id="simSrc"></p>
+      </div>
+    </div>
+
+    <div class="wrap stack" style="margin:8px auto 0">
+      <div class="callout stack">
+        <p><b>The signals behind the transceiver scenario.</b> Some are law, some are only proposed, and some are only reported. The simulator keeps them apart.</p>
+        <ul style="margin:0;padding-left:20px;font-size:.95rem;display:flex;flex-direction:column;gap:4px">
+          <li><b>In force:</b> FCC 26-50 blocks new authorizations for devices containing a logic-bearing component from a Covered List entity, from 13 Oct 2026 [23]. Foreign-made consumer routers (Mar 2026) and power inverters (Jul 2026) need DoW/DHS Conditional Approval for new models [24][25]. InnoLight joined the Pentagon's 1260H list on 8 Jun 2026 [26].</li>
+          <li><b>Proposed bill:</b> S.5548 would bar InnoLight and Eoptolink transceivers from federal national-security systems after a five-year transition. Introduced 24 Sep 2026, in committee [27].</li>
+          <li><b>Reported only:</b> an FCC ban on new Chinese transceiver models, possibly starting at 3.2T with a 65% US-BOM exemption. No FCC document yet [28][29]. Chinese makers hold about 60% of datacom transceiver revenue [30].</li>
+        </ul>
+      </div>
+      <p class="sim-note"><b>What Sayari adds.</b> Sayari flags InnoLight's Hong Kong arm as owned by a 1260H entity, and shows Eoptolink subsidiaries in <a href="https://graph.sayari.com/resource/entity/1KiUMzbIgT40GfIy6iJuAg" target="_blank" rel="noopener">Thailand</a>, <a href="https://graph.sayari.com/resource/entity/7RjudzQwvxL2fHl-_cPPDw" target="_blank" rel="noopener">Singapore</a> and the <a href="https://graph.sayari.com/resource/entity/7FTrrFc2px5tMmpCgCSSag" target="_blank" rel="noopener">US</a>. That is why the "made in" definition matters. A caution: searching shipments by the name "INNOLIGHT" also returned Foxconn and Amphenol factories in Vietnam, so I used company records, not raw shipment counts.</p>
+      <p class="sim-note"><b>Limit:</b> market shares are sourced; US-content shares are illustrative assumptions you can change. The transceiver ban is not law.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+const S={
+ tx:{
+  title:"FCC ban on new Chinese optical transceivers",cert:"reported",certLabel:"Reported only",
+  desc:"Reuters reported the FCC is drafting a ban on new Chinese transceiver models. A Morgan Stanley note says it may start at the 3.2T generation (ramping 2028–29) and exempt modules with at least 65% US content. Existing authorized models are not affected.",
+  nodes:[
+   {n:"Zhongji InnoLight",u:"https://graph.sayari.com/resource/entity/Xwv0jwltPNTxG7jWoYVFXw",hq:"CHN",pc:"CHN",share:34,listed:"1260H list (Jun 2026) · named in S.5548"},
+   {n:"Eoptolink (Chengdu)",u:"https://graph.sayari.com/resource/entity/rVu5uk9-5QzBw7GK5l2MSQ",hq:"CHN",pc:"CHN",share:14,listed:"Named in S.5548",shareNote:"company total"},
+   {n:"Eoptolink (Thailand plant)",u:"https://graph.sayari.com/resource/entity/1KiUMzbIgT40GfIy6iJuAg",hq:"CHN",pc:"THA",share:0,listed:"Named in S.5548",shareNote:"part of Eoptolink share"},
+   {n:"HG Genuine",hq:"CHN",pc:"CHN",share:3},
+   {n:"Coherent",hq:"USA",pc:"Multiple",share:12,shareNote:"~23% with Lumentum"},
+   {n:"Lumentum",hq:"USA",pc:"Multiple",share:11,shareNote:"~23% with Coherent"},
+   {n:"Applied Optoelectronics",hq:"USA",pc:"USA",share:2,shareNote:"small, expanding"}
+  ],
+  src:"Sources: [23]–[30]. Shares: Cignal AI 1Q26 (InnoLight 34%, Eoptolink ~14%, three Chinese leaders 51%); Counterpoint (Coherent + Lumentum ~23%, split here evenly for illustration)."
+ },
+ w:{
+  title:"DFARS ban on Chinese, Russian, North Korean and Iranian tungsten",cert:"in_force",certLabel:"In force · from 1 Jan 2027",
+  desc:"A US defense procurement rule: from 1 January 2027 the Department of Defense may not buy tungsten mined, refined or produced in China, Russia, North Korea or Iran. ITER is not a DoD buyer, but the rule pulls non-Chinese supply toward defense customers (see the feedback loop in section 2).",
+  nodes:[
+   {n:"Boss Mining Solution (exporter)",u:"https://graph.sayari.com/resource/entity/WKC3rFluM3Fgj6NXzGwxTA",hq:"RWA",pc:"RWA",stage:"Mine",flagx:"UN conflict-minerals report: legal under DFARS, still a due-diligence risk"},
+   {n:"Novacore FZE (trader)",u:"https://graph.sayari.com/resource/entity/fc7RNdHZNcMUqXa0gnEjhA",hq:"ARE",pc:"ARE",stage:"Trade",flagx:"Also ships to Xiamen Tungsten (China): ore sent there would fail"},
+   {n:"Chinese APT refiners",hq:"CHN",pc:"CHN",stage:"Refine"},
+   {n:"Vonfram Masan (refiner)",u:"https://graph.sayari.com/resource/entity/uEVxlKok1dI7gxPTjVtYPg",hq:"VNM",pc:"VNM",stage:"Refine",flagx:"Passes only if its ore is not Chinese-mined"},
+   {n:"A.L.M.T. (powder, Japan)",hq:"JPN",pc:"JPN",stage:"Powder"},
+   {n:"AT&M (powder, China)",u:"https://graph.sayari.com/resource/entity/RJjq6Ru7Me8L0pe7UHByBg",hq:"CHN",pc:"CHN",stage:"Powder"}
+  ],
+  src:"Source: DFARS final rule, Federal Register, May 2024 [8]. Nodes from sections 2 and 4 of this site."
+ }
+};
+const st={sc:"tx",gen:"3.2T",def:"hq",thr:65,us:60,buyer:"dod"};
+const ctrl=document.getElementById("simCtrl");
+function seg(name,label,opts,cur,hint){return '<fieldset><legend>'+label+'</legend><div class="seg" data-k="'+name+'">'+opts.map(o=>'<button type="button" data-v="'+o[0]+'" aria-pressed="'+(o[0]===cur)+'">'+o[1]+'</button>').join("")+'</div>'+(hint?'<p class="hint">'+hint+'</p>':'')+'</fieldset>';}
+function drawCtrl(){
+ if(st.sc==="tx"){
+  ctrl.innerHTML=seg("gen","Rule starts at generation",[["800G","800G"],["1.6T","1.6T"],["3.2T","3.2T"]],st.gen,"Reported: 3.2T. Earlier = bigger shock.")+
+  seg("def","“Chinese” is defined by",[["hq","Company HQ"],["loc","Where it is made"]],st.def,"The FCC has proposed both kinds of Covered List entries.")+
+  '<fieldset><legend>US-content exemption threshold</legend><input type="range" min="0" max="100" step="5" id="thr" value="'+st.thr+'" aria-label="US-content exemption threshold"><p class="hint"><output id="thrO">'+(st.thr?st.thr+"%":"No exemption")+'</output> · reported: 65%</p></fieldset>'+
+  '<fieldset><legend>Assumed US share of a Chinese-made module</legend><input type="range" min="0" max="100" step="5" id="us" value="'+st.us+'" aria-label="Assumed US share of a Chinese-made module"><p class="hint"><output id="usO">'+st.us+'%</output> · illustrative. A US DSP plus US laser may get close to 65%.</p></fieldset>';
+ } else {
+  ctrl.innerHTML=seg("buyer","Who is buying?",[["dod","US defense (DoD)"],["iter","ITER / civilian"]],st.buyer,"DFARS binds DoD contracts only.");
+ }
+}
+function evalTx(nd){
+ if(!(st.def==="hq"?nd.hq==="CHN":nd.pc==="CHN")) return ["ok","Unaffected",nd.hq==="CHN"?"Made outside China, so not covered under a location-based rule":"Not a Chinese producer"];
+ if(st.thr>0&&st.us>=st.thr) return ["exempt","Exempt","Assumed US content "+st.us+"% meets the "+st.thr+"% threshold"];
+ return ["blocked","Blocked","New "+st.gen+"+ models cannot get FCC authorization"+(st.thr>0?" (US content "+st.us+"% < "+st.thr+"%)":"")];
+}
+function evalW(nd){
+ const bad=["CHN","RUS","PRK","IRN"].includes(nd.pc);
+ if(st.buyer==="iter") return bad?["watch","Watch","Not barred for civilian buyers, but defense demand competes for non-Chinese supply"]:["ok","Unaffected","DFARS does not bind civilian buyers"];
+ return bad?["blocked","Blocked","Tungsten produced in China cannot go into DoD purchases from 2027"]:["ok","Allowed","Not in a covered country at this stage"];
+}
+function draw(){
+ const s=S[st.sc];
+ document.getElementById("simTitle").textContent=s.title;
+ const c=document.getElementById("simCert");c.className="cert "+s.cert;c.textContent=s.certLabel;
+ document.getElementById("simDesc").textContent=s.desc;
+ let blocked=0,exempt=0,rows="";
+ s.nodes.forEach(nd=>{
+  const r=st.sc==="tx"?evalTx(nd):evalW(nd);
+  if(r[0]==="blocked")blocked+=nd.share||0; if(r[0]==="exempt")exempt+=nd.share||0;
+  const nm=nd.u?'<a href="'+nd.u+'" target="_blank" rel="noopener">'+nd.n+'</a>':nd.n;
+  const sh=st.sc==="tx"?'<div class="why">'+(nd.share?"~"+nd.share+"% of revenue":"")+(nd.shareNote?(nd.share?" · ":"")+nd.shareNote:"")+'</div>':'<div class="why">'+nd.stage+'</div>';
+  const fl=nd.listed?'<span class="flag">⚑ '+nd.listed+(r[0]!=="blocked"?" · still a federal / DoD risk":"")+'</span>':(nd.flagx?'<span class="flag">⚑ '+nd.flagx+'</span>':'');
+  rows+='<tr><td>'+nm+sh+'</td><td>'+nd.pc+'</td><td><span class="chip '+r[0]+'">'+r[1]+'</span><div class="why">'+r[2]+'</div>'+fl+'</td></tr>';
+ });
+ document.getElementById("simRows").innerHTML=rows;
+ const cards=document.getElementById("simCards"),acts=document.getElementById("simActs");
+ if(st.sc==="tx"){
+  const yr={"800G":"Next new model","1.6T":"Next new model","3.2T":"~2028–29"}[st.gen];
+  cards.innerHTML='<div><b class="num">~'+blocked+'%</b><span>of supply blocked for new '+st.gen+'+ models</span></div><div><b class="num">~'+exempt+'%</b><span>exempt through US content</span></div><div><b>'+yr+'</b><span>when it starts to bite (existing models stay legal)</span></div>';
+  const a=[];
+  if(blocked>0)a.push("Lock in current-generation (800G/1.6T) volumes now; they stay legal.");
+  if(blocked>0)a.push("Qualify a second source outside China (Coherent, Lumentum, AOI) before "+st.gen+" ramps. US capacity is far smaller, so start early.");
+  if(st.thr>0&&st.us<st.thr)a.push("Ask Chinese suppliers to raise US content (US DSP + US laser) toward "+st.thr+"%, and get BOM documentation in the contract.");
+  if(exempt>0)a.push("Exempt is not safe: InnoLight is on the 1260H list and named in S.5548, so keep it out of federal and defense regions.");
+  if(st.def==="loc")a.push("Under a location rule, Eoptolink's Thai plant passes. Ask suppliers which factory each order ships from; verify in Sayari.");
+  a.push("Design for swap-ability: standard pluggables are easier to re-source than co-packaged optics.");
+  acts.innerHTML=a.map(x=>"<li>"+x+"</li>").join("");
+ } else {
+  const nb=s.nodes.filter(nd=>(st.sc==="w")&&["CHN"].includes(nd.pc)).length;
+  cards.innerHTML='<div><b class="num">'+(st.buyer==="dod"?nb:0)+'</b><span>of 6 nodes barred for this buyer</span></div><div><b>1 Jan 2027</b><span>effective date</span></div><div><b class="num">79%</b><span>of 2025 mine output was Chinese [5]</span></div>';
+  acts.innerHTML=(st.buyer==="dod"?["Use non-Chinese powder (A.L.M.T.) and refiners (Masan) with mine-of-origin records.","Trace traders: Novacore also ships to Xiamen Tungsten, so lot-level origin is needed.","This is where the material passport (section 5) earns its cost."]:["Civilian fusion buyers are not barred, but will compete with defense buyers for non-Chinese tungsten, pushing prices up.","Price and supply risk are the main exposure; start origin tracking now."]).map(x=>"<li>"+x+"</li>").join("");
+ }
+ document.getElementById("simSrc").textContent=s.src;
+}
+document.querySelectorAll(".sim-tab").forEach(b=>b.addEventListener("click",()=>{st.sc=b.dataset.sc;document.querySelectorAll(".sim-tab").forEach(x=>x.setAttribute("aria-pressed",x===b));drawCtrl();draw();}));
+ctrl.addEventListener("click",e=>{const b=e.target.closest(".seg button");if(!b)return;st[b.parentNode.dataset.k]=b.dataset.v;drawCtrl();draw();});
+ctrl.addEventListener("input",e=>{if(e.target.id==="thr"){st.thr=+e.target.value;document.getElementById("thrO").textContent=st.thr?st.thr+"%":"No exemption";}if(e.target.id==="us"){st.us=+e.target.value;document.getElementById("usO").textContent=st.us+"%";}draw();});
+drawCtrl();draw();
+})();
+</script>
+
+
+<section>
+  <div class="wrap stack">
+    <p class="label">Sources</p>
+    <ol class="src">
+      <li><a href="https://iter.org/node/16179" target="_blank" rel="noopener">ITER Organization, "The hottest stuff in ITER" (divertor prototype)</a></li>
+      <li><a href="https://lovguiden.dk/en/det-offentlige/fusion-for-energy/2026-10-07-foerste-inner-vertical-target-til-iter-fusionsreaktoren-er-faerdigt" target="_blank" rel="noopener">Fusion for Energy, first series Inner Vertical Target completed, Oct 2026</a></li>
+      <li><a href="https://conferences.iaea.org/event/285/contributions/22687/attachments/11981/19520/IAEA%20Resource%20availability%20&%20supply%20RJPearson_8June2022.pdf" target="_blank" rel="noopener">Pearson (Kyoto Fusioneering), Resource availability and supply, IAEA 2022</a></li>
+      <li><a href="https://thebreakthrough.org/issues/energy/why-fusion-power-tomorrow-needs-industrial-capacity-today" target="_blank" rel="noopener">Breakthrough Institute, Why fusion power tomorrow needs industrial capacity today</a></li>
+      <li><a href="https://theoregongroup.com/commodities/tungsten/why-tungsten-prices-are-rising-so-fast-inside-the-supply-crunch/" target="_blank" rel="noopener">Oregon Group, Inside the tungsten supply crunch (USGS and Canaccord figures)</a></li>
+      <li><a href="https://www.industrialinfo.com/news/article/china-restrictions-lead-to-tungsten-supply-crunch--358432" target="_blank" rel="noopener">Industrial Info, China restrictions lead to tungsten supply crunch</a></li>
+      <li><a href="https://www.fastmarkets.com/insights/chinese-tungsten-product-prices-surge-2025-export-controls-fresh-demand" target="_blank" rel="noopener">Fastmarkets, Chinese tungsten prices surge over 200% in 2025</a></li>
+      <li><a href="https://www.govinfo.gov/content/pkg/FR-2024-05-30/pdf/2024-11513.pdf" target="_blank" rel="noopener">US DoD, DFARS final rule on magnets, tantalum and tungsten, Federal Register, May 2024</a></li>
+      <li><a href="https://econpapers.repec.org/RePEc:caa:jnlpse:v:70:y:2024:i:4:id:344-2023-pse" target="_blank" rel="noopener">Li et al. (2024), Health risk of tungsten and heavy metals in farmland, southern Jiangxi, Plant, Soil and Environment</a></li>
+      <li><a href="https://peerj.com/articles/17200" target="_blank" rel="noopener">Lai et al. (2024), Heavy metals in soils near tungsten mines, Dayu County, PeerJ</a></li>
+      <li><a href="https://www.wikipedia.org/wiki/Conflict_minerals" target="_blank" rel="noopener">Conflict minerals law (overview)</a></li>
+      <li><a href="https://www.swissinfo.ch/eng/international-geneva/un-experts-warn-congos-conflict-minerals-slipping-into-global-market/89978793" target="_blank" rel="noopener">Swissinfo, UN experts warn Congo's conflict minerals slipping into global market, 2025</a></li>
+      <li><a href="https://www.irrawaddy.com/business/first-known-russian-tungsten-mining-project-moves-into-eastern-shan.html" target="_blank" rel="noopener">The Irrawaddy, Russian tungsten mining project moves into eastern Shan, Jun 2026</a></li>
+      <li><a href="https://www.fastmarkets.com/insights/from-burmese-mines-to-chinese-smelters-how-myanmar-rejoined-chinas-critical-minerals-supply-chain/" target="_blank" rel="noopener">Fastmarkets, How Myanmar rejoined China's critical minerals supply chain</a></li>
+      <li><a href="https://en.vietnamplus.vn/vietnams-biggest-polymetallic-project-fined-for-violations/115145.vnp" target="_blank" rel="noopener">VietnamPlus, Nui Phao fined for violations, 2017</a> · <a href="https://news.laodong.vn/kinh-doanh/lap-doan-kiem-tra-muc-do-o-nhiem-moi-truong-tai-nui-phao-1496512.ldo" target="_blank" rel="noopener">Lao Dong, inspection team formed, 2025</a></li>
+      <li><a href="https://www.mining-technology.com/newsletters/phase-1-commissioning-concludes-sangdong-mine" target="_blank" rel="noopener">Mining Technology, Phase one commissioning at Almonty's Sangdong mine, Mar 2026</a></li>
+      <li><a href="https://www.theeastafrican.co.ke/tea/business-tech/un-rwandan-coltan-exporter-boss-mining-smuggled-congo-minerals-5106116" target="_blank" rel="noopener">Reuters via The EastAfrican, UN: Rwandan exporter Boss Mining bought smuggled Congo minerals</a></li>
+      <li><a href="https://www.aol.com/news/exclusive-west-frets-over-chinas-063403596.html" target="_blank" rel="noopener">Reuters, West frets over China's interest in Vietnam tungsten mine</a></li>
+      <li><a href="https://repo.qst.go.jp/records/82031" target="_blank" rel="noopener">QST, Variation in properties of ITER W monoblocks by supplier lot, Fusion Engineering and Design</a></li>
+      <li><a href="https://www.qst.go.jp/uploaded/attachment/38042.pdf" target="_blank" rel="noopener">A.L.M.T. Corp., Approach to fusion energy, ITER/BA report 2022</a> · <a href="https://www.metal.com/en/newscontent/103409827" target="_blank" rel="noopener">SMM on AT&amp;M</a></li>
+      <li><a href="https://www.fairphone.com/en/?p=10624" target="_blank" rel="noopener">Fairphone, Supporting conflict-free tungsten in Rwanda</a></li>
+      <li><a href="https://www.business-humanrights.org/my/သတင/eu-mineral-imports-continue-to-pose-high-risk-of-funding-militias-and-state-repression-advocacy-group-says" target="_blank" rel="noopener">Business &amp; Human Rights Resource Centre, Global Witness on EU conflict-mineral imports, 2025</a></li>
+    
+      <li><a href="https://docs.fcc.gov/public/attachments/FCC-26-50A1.pdf" target="_blank" rel="noopener">FCC, Third Report and Order FCC 26-50 (component rule), Jul 2026; effective 13 Oct 2026 (primary)</a></li>
+      <li><a href="https://docs.fcc.gov/public/attachments/DOC-420034A1.pdf" target="_blank" rel="noopener">FCC fact sheet, foreign-made consumer routers added to Covered List, 23 Mar 2026 (primary)</a></li>
+      <li><a href="https://www.stoel.com/insights/publications/it-happened-fcc-adds-foreign-produced-power-inverters-to-the-covered-list" target="_blank" rel="noopener">Stoel Rives, FCC Public Notice DA 26-786 adds foreign-produced power inverters, 28 Jul 2026</a></li>
+      <li><a href="https://www.wilmerhale.com/en/insights/client-alerts/20260611-pentagon-adds-65-new-entities-to-the-1260h-list-of-chinese-military-companies" target="_blank" rel="noopener">WilmerHale, Pentagon adds 65 entities (incl. Innolight) to the 1260H list, 8 Jun 2026</a></li>
+      <li><a href="https://fastdemocracy.com/bill-search/us/119/bills/USB00108625/" target="_blank" rel="noopener">S.5548, Securing National Security Systems from Chinese Optical Transceivers Act of 2026 (Congress record)</a></li>
+      <li><a href="https://info.fusionww.com/blog/chinese-optical-transceiver-ban-what-procurement-should-know" target="_blank" rel="noopener">Fusion Worldwide, summary of Reuters' 4 Aug 2026 report on a draft FCC transceiver ban (reported)</a></li>
+      <li><a href="https://roctelecom.com/insights/fcc-optical-module-rules-update/" target="_blank" rel="noopener">ROC Telecom, 3.2T phase-in (Morgan Stanley) and transceiver makers not on the Covered List (reported)</a></li>
+      <li><a href="https://cignal.ai/2026/08/fcc-ban-on-new-chinese-optical-modules/" target="_blank" rel="noopener">Cignal AI, FCC ban on new Chinese optical modules: market shares, 1Q26</a> · <a href="https://fourweekmba.com/ai-microsoft-said-to-oppose-ban-on-china-optics-60-of-revenue/" target="_blank" rel="noopener">Counterpoint shares via FourWeekMBA</a></li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Iteration 2 · adds a proposed regulation simulator (section 6) · built with Claude and Sayari · trade data as of November 2026. Corrections and comments welcome in class.</div>
+</footer>
+<script>(function(){var g=document.getElementById("bgrid");if(!g)return;var s="";for(var i=0;i<300;i++)s+="<i></i>";g.innerHTML=s;})();</script>
+
+<script>
+(function(){
+const LAND = ",,,,,,3z.8,2q.k.f.2.1.m,2i.n.1.1.4.14.1.1.2.5.1x.1,2c.7.9.b.2.1e.1r.1.1.2.9.2.v.5,2c.n.8.1a.u.2.1.1.1.3.1.6.1v.7,1v.4.4.5.2.3.2.4.2.b.4.1f.w.3.1.4.1.2.26.5,1r.1.3.3.4.1.9.3.2.1.2.2.2.2.1.3.8.1.3.19.z.4.3.1.1.1.27.3,1n.2.1.1.7.1.4.2.2.3.2.5.1.1.1.1.1.7.a.1b.2f.4.x.b,1s.a.6.6.2.5.1.6.m.13.25.5.r.o.n.5.1.2.1.1,1m.1.7.2.e.1.9.1.v.11.23.3.s.o.1.1,1k.9.8.2.3.4.2.5.3.2.2.7.l.v.1.3.23.3.i.2.4.q.3.3.1.5.4.3.1.1.c.3,1j.6.1.9.1.3.3.6.1.1.4.4.1.4.3.3.k.u.1.2.23.2.e.4.2.1.1.1.3.1c.c.5,2.1i.3.3.2.1.b.5.1.3.2.3.g.1.1.h.1.1.q.1.3.24.3.c.4.1.2.2.6.1.19.3.1.2.4.1.b.t,k.8.2.1.11.9.7.4.3.l.e.2.1.m.1.1.3.1.1a.2.1.5.10.6.1.9.1.24,h.o.6.1.1.5.1.1.1.2.4.e.5.1.1.1.1.3.6.2.4.1.1.9.e.2.1.r.15.1.1.d.s.4.4.5.1.2m.3.7,2.c.1g.1.1.4.4.7.1.2.3.1.2.2.4.8.7.e.p.17.1.1.l.6.2.7.1.1.4.1.8.1.8.1,5.b.1j.1.c.1.7.1.6.4.2.3.8.a.l.1d.p.3.1.3.o.2,9.6.1.4.21.2.2.9.c.8.j.1c.k.2.6.3.q.2,1.3.4.4.27.1.1.1.1.b.7.2.2.a.d.g.1.1.8.q.a.3.a.5,6.2.b.21.2.4.4.2.3.8.e.b.i.8.p.a.3.b.2.3w,8.2.9.1y.5.2.d.2.1.3.e.a.l.2.q.2.1.9.2.4d,f.20.9.2.4.1.8.2.2.1.e.8.1c.c.3.3y.2.c.1.1,e.20.g.6.n.7.1b.c.5.3r.3.2.2.9,f.d.1.3.2.1f.h.8.o.2.16.1.6.d.4.4.1.1.1.3i.7.6.1.2,i.8.e.19.h.8.5.1.1x.5.1.7.7.2.1.3d.1.1.1.3.5.3,n.3.1.1.f.18.f.a.1.4.1m.2.9.3.2.6.5.1.1.39.i.3,n.1.1.3.g.17.g.f.1j.5.e.5.1.1.3.1.1.38.h.6,k.2.o.1.1.18.b.f.1l.2.b.3.2.4.4.39.i.7,1a.1.1.1a.9.h.1j.3.a.4.1.1.7.37.k.6,f.1.y.1c.2.m.1e.3.1.3.a.1.3.1.2.3.1.39.j.5,1b.1.2.1c.3.n.1a.4.3.3.7.1.1.3o.f.4,1c.1.3.1a.3.n.1a.4.2.6.3.3s.1.1.d.2,1g.1z.1.1.1f.5.3.3t.1.1.d.2,1g.1.2.1t.3.1.1f.1.6.3u.2.2,1h.2.1.1l.3.2.4.2.1.1.1g.1.1.3w.2.2,1k.1j.1.4.6.5.1c.41.2.1,1k.1.1.1l.9.1.1.1.1f.3x.3.1,1k.1n.1.1.2.1.1m.x.1.4.2.b.4.2d.5.1,1k.1r.1o.e.1.g.3.2.3.a.5.2c,1k.1k.2.2.1r.d.3.e.9.9.3.2e.6.1,1k.1i.1q.3.3.9.3.4.3.c.b.8.3.2c.6.4,1k.1h.1q.c.6.1.1.3.4.a.e.6.5.26.b.1,1k.1h.1q.b.b.3.3.9.4.4.5.8.5.24,1k.1e.1t.a.7.2.5.3.1.5.5.l.3.1w.1.7.b.2,1k.1e.1t.9.2.1.5.2.6.1.3.3.4.m.4.1u.2.2.2.3.c.2,1l.1c.1a.1.j.9.g.1.4.3.2.n.5.1s.7.3.c.2,1m.1a.1v.8.e.2.7.1.4.m.5.1t.1.2.5.2.a.2,1m.1a.1y.1.6.a.i.2.1.2.2.2d.6.2.7.5,1n.19.1y.1.4.c.p.2c.6.3.5.6,1n.18.1y.h.q.2c.6.1.4.3.1.2,1q.13.1z.j.o.2e.5.1.3.4,1r.10.20.o.5.3.c.2e.a.1,1r.2.1.x.1z.q.4.7.7.2f.9.1,1s.1.2.w.1z.t.1.2t,1t.2.1.h.4.1.7.2.1z.16.1.f.3.1z,1u.1.1.f.e.2.1y.1n.3.1z,1t.3.1.e.e.3.1v.1b.2.d.4.1w,1v.2.2.c.f.2.1u.1c.2.e.7.1r,1w.1.2.c.g.1.1t.1e.2.d.9.7.1.1h,1w.1.3.a.2b.1e.2.e.4.2.a.1f.3.1,1y.1.2.9.2a.1g.3.k.9.1d.3.1,22.8.e.1.1.4.1q.1g.3.l.a.18.6.1,23.7.9.1.9.2.1o.1i.2.k.b.2.1.e.5.g.2.1,22.9.7.3.a.2.1n.1h.3.j.e.e.6.e.3.1,o.1.1e.9.5.4.e.3.1i.1h.4.h.f.c.9.c.3.2,24.9.2.1.1.3.e.6.1g.1i.3.g.g.b.a.c.3.1,27.d.20.1j.3.d.i.a.c.c.d.2,29.b.20.1j.4.a.k.9.c.2.2.a.c.2,2f.9.1v.1l.3.9.m.6.i.b.b.1,2g.9.1u.1m.2.6.p.6.i.b.b.2,2j.5.1v.1n.1.4.s.5.i.2.1.8.b.1.1.2,2l.3.1v.1o.a.1.l.5.j.1.2.7.f.1,2m.2.b.1.2.1.1i.1m.7.1.p.4.j.1.3.6.d.1.1.2,2m.3.7.4.1.5.2.1.1c.1n.1.6.p.4.i.1.5.3.c.1,2o.2.2.1.3.4.1.a.1b.1t.p.3.1.1.h.1.6.1.c.1.6.1,2o.4.2.i.1b.1r.r.1.2.1.h.2.n.3,2r.1.2.j.1b.1q.u.2.h.1.o.3,2v.j.1b.e.1.19.v.2.i.2.e.2.6.2,2v.o.17.a.5.18.1a.1.4.3.c.4,2v.p.18.1.d.1.2.13.1c.2.3.2.b.5,2v.q.1p.11.1e.2.2.2.a.4,2u.r.1p.10.1g.2.2.2.7.7.a.1,2t.t.1o.y.1j.3.1.1.5.9.a.1,2s.t.1o.y.1k.4.6.9.3.3.4.1,2s.w.1l.x.1m.3.1.1.4.9.9.1.2.1.1.1,2r.s.1.3.1.3.1i.x.1n.3.6.7.2.3.5.1.4.2,2r.v.1.4.1j.v.1o.6.3.7.2.3.e.5,2r.16.1e.t.1q.4.9.1.3.1.1.1.4.1.3.1.2.b,2r.17.1e.r.1s.3.u.9,2r.1a.1b.r.1t.2.d.1.e.1.3.8.2.1.1.2,2s.19.1b.r.1v.3.p.1.4.9.7.1,2s.19.1c.q.1w.6.i.1.6.9,2t.18.1c.q.24.6.1.2.2.1.d.3.3.2,2u.16.1d.r.27.1.4.1.m.2.1.1,2u.16.1e.q.32.1,2v.14.1f.q.2i.1.1.1.9.1.a.1,2v.13.1f.s.8.1.29.6.5.1,7.1.2o.11.1g.s.7.2.28.6.6.2,2w.11.1f.t.7.2.24.2.2.6.6.3,2x.10.1f.t.5.4.22.c.5.4,22.x.6.s.1f.s.4.6.21.f.1.1.1.4.m.1.b.1,u.1.26.w.1f.q.6.5.21.i.1.5,32.u.1g.p.7.5.21.o,32.u.1h.m.9.5.20.r,32.u.1h.m.9.5.8.1.1o.v.f.1,32.t.1j.l.8.5.1v.y.g.1,32.s.1k.m.7.5.1u.10,32.p.1n.l.9.4.1u.11,31.o.1q.k.9.3.1u.13,31.m.1s.i.c.1.1w.13,31.m.1s.i.28.14,31.n.1r.i.29.14,31.m.1t.g.2b.13,31.l.1v.e.2c.12,30.m.1v.e.2c.12,30.k.1y.c.2e.11,31.j.1y.b.2f.a.8.i,30.d.1.5.1z.9.2h.8.b.2.1.d,30.e.1.3.21.1.2o.3.g.1.1.e,2z.g.5f.c.n.1,2z.g.5h.a.o.1,2y.h.5h.a.p.1,2y.g.5l.1.1.2.s.3,2z.b.6k.3,2y.c.6l.2,2y.9.5u.3.o.2.1.1,2z.9.5t.3.n.3,2z.8.5v.1.n.3,2z.8.6h.3,2x.8.6i.4,2x.8.6j.2,2y.8,2w.1.1.7,2x.7.3t.1,2x.6,2y.5.9.2,2y.5,2y.1.1.1.2.1,30.1.1.4.t.1,,,,,,,,,3e.1,38.1.2.1,38.2.4i.1,36.2.36.7.17.7.4.4.a.2.3.8.o.1,33.3.34.1.2.c.m.1p,35.2.1.1.2w.t.9.20,2z.3.1.6.2o.2.5.t.7.2c,31.2.1.6.1x.3.2.7.2.1.7.14.4.2g.1.1,2z.5.1.5.1e.3.1.7.1.1w.3.2s,29.3.n.4.2.6.1d.27.2.2s,1h.1.q.f.4.2.1.1.2.1.1.c.19.53,1c.1.3.1.8.6.1.2.a.13.17.51.1.1,13.25.17.1.1.51,x.25.15.5c,m.7.3.22.14.5i.2.3,o.20.2.5.9.1.h.6.8.5n,h.4.8.23.4.2.k.7.d.5a,u.22.a.6.6.7.e.5e,h.2.6.2i.n.5n,r.2i.7.65,b.7.1.1.1.96,7.9,,,,,";
+const D = Math.PI/180;
+const COL = {1:'#ff8a3d',2:'#ff5c7a',3:'#ffd166',4:'#6fe3c6',5:'#b39dff',trace:'#ff8a3d'};
+const RISK = {high:'#ff6b6b',mid:'#ffc857',low:'#5fd19c',none:'#cdd8ee'};
+
+/* ---------- places (lon, lat) ---------- */
+const N = {
+  jx:{n:'Southern Jiangxi, China',ll:[114.9,25.8],s:[1],risk:'mid',big:1,
+      d:'Centre of world tungsten mining: China produced 79% of 2025 mine output [5]. Studies near mines in Ganzhou and Dayu found heavy-metal health risks for children and contaminated rice [9][10]. China has required export licences since February 2025 [6].'},
+  shan:{n:'Shan State, Myanmar',ll:[99.3,20.8],s:[1],risk:'high',
+      d:'A Chinese-run tungsten mine at Mong Jawd started production in February 2026 in cooperation with the United Wa State Army [13]. Its ore goes overland to China. Myanmar does not appear among the top origins in Sayari’s tungsten-ore records.'},
+  rw:{n:'Rwanda',ll:[29.9,-1.6],s:[1,2,3],risk:'high',big:1,
+      d:'The most common recorded origin in Sayari (734 of 4,582 ore records), mostly because Sayari holds Rwandan customs data. UN experts found minerals from M23-held Congo smuggled into Rwanda at unprecedented levels and mixed into its exports [12]. Exporters include Trinity Nyakabingo, Kanzamin and Boss Mining Solution.'},
+  cd:{n:'South Kivu, DR Congo',ll:[28.6,-2.9],s:[1,3],risk:'high',
+      d:'28 ore records go from Congo straight to Vietnam. Global Witness documents showed wolframite from Nzibira in South Kivu reaching a European buyer in 2023 [22].'},
+  vn:{n:'Nui Phao, Vietnam',ll:[105.6,21.6],s:[1,3,4],risk:'mid',big:1,
+      d:'Largest tungsten mine outside China, with Masan’s APT refinery beside it. Vietnam receives 1,759 ore records, more than any other country, and ships 600 of the 723 APT records. The mine was fined in 2017 for environmental violations and faced new resident complaints in 2025 [15].'},
+  kr:{n:'Sangdong, South Korea',ll:[128.9,37.1],s:[1],risk:'low',
+      d:'Restarted in 2026 after 30 years. At full capacity it aims to supply about 40% of tungsten demand outside China [16]. Built to the Equator Principles in a regulated jurisdiction.'},
+  ib:{n:'Iberia (Portugal, Spain)',ll:[-7.2,40.6],s:[1,3],risk:'low',
+      d:'Panasqueira (Portugal) and Spanish mines ship scheelite concentrate to the US and Vietnam (31 records to Vietnam).'},
+  ru:{n:'Primorye, Russia',ll:[134.0,44.2],s:[1,3],risk:'mid',
+      d:'281 ore records leave Russia, to Vietnam, Austria, Korea and China. From January 2027 the US Pentagon bars tungsten mined or refined in Russia [8].'},
+  au:{n:'Australia',ll:[145.3,-16.6],s:[1,3],risk:'low',
+      d:'201 ore records to Vietnam. One Australian producer has its whole output refined at Masan’s plant [18].'},
+  us0:{n:'United States (exports)',ll:[-118.3,34.0],s:[3],risk:'none',
+      d:'149 ore records to Vietnam. The US has had no operating tungsten mine since 2015, so these are traded or recycled concentrates.'},
+  ae:{n:'UAE free zones',ll:[55.6,25.3],s:[2,3],risk:'high',big:1,
+      d:'78 ore records from Rwanda. Buyers here include Novacore FZE (Ras Al Khaimah), which received ore from Boss Mining Solution in July 2026, and Halcyon Inc (Dubai), which Sayari flags for conflict minerals and which sold concentrate to Masan.'},
+  hk:{n:'Hong Kong',ll:[114.2,22.3],s:[2],risk:'mid',
+      d:'67 ore records from Rwanda. Specialty Metals Resources buys here from New Bugarama, Rani Mining and Kanzamin.'},
+  tz:{n:'Dar es Salaam, Tanzania',ll:[39.3,-6.8],s:[2,3],risk:'mid',
+      d:'The port Rwandan ore travels through. 63 records end here and 42 more leave for Vietnam.'},
+  lu:{n:'Luxembourg (Traxys)',ll:[6.1,49.6],s:[2,4],risk:'mid',
+      d:'90 records from Rwanda list Luxembourg, where Traxys Europe, the top buyer of Rwandan ore (191 records), is registered. The ore itself may ship elsewhere.'},
+  my:{n:'Malaysia',ll:[101.5,3.1],s:[2],risk:'mid',d:'25 ore records from Rwanda.'},
+  cn:{n:'Xiamen & Ganzhou refiners',ll:[118.1,24.5],s:[3],risk:'mid',
+      d:'China refines 70–85% of the world’s APT [5]. 127 ore records arrive from Rwanda and 34 from Russia. Sayari records Novacore FZE shipping to Xiamen Tungsten.'},
+  at:{n:'Austria (Wolfram Bergbau)',ll:[15.3,46.9],s:[3],risk:'low',
+      d:'61 ore records from Russia arrive in Austria. Wolfram Bergbau und Hütten is the audited refiner that worked with Fairphone to buy conflict-free Rwandan tungsten [21].'},
+  krb:{n:'Korea (buyers)',ll:[126.9,37.5],s:[3],risk:'none',d:'58 ore records from Russia.'},
+  usr:{n:'US refiners',ll:[-76.4,41.8],s:[3],risk:'low',
+      d:'Global Tungsten & Powders and Kennametal buy concentrate here. 209 records arrive from China and 27 from Rwanda.'},
+  de:{n:'Germany',ll:[10.4,51.9],s:[4],risk:'none',d:'The largest recorded destination for Vietnamese APT: 221 records.'},
+  jp:{n:'Japan (A.L.M.T.)',ll:[137.2,36.7],s:[4,5],risk:'none',big:1,
+      d:'169 APT records arrive from Vietnam. A.L.M.T. in Toyama is one of two companies qualified to make ITER’s tungsten monoblocks; Hitachi and MHI build Japan’s 58 outer divertor targets [19][20]. No record names A.L.M.T. as an APT buyer.'},
+  nl:{n:'Rotterdam',ll:[4.5,51.9],s:[4],risk:'none',d:'75 APT records from Vietnam. Rotterdam is the price benchmark for APT traded outside China.'},
+  fr:{n:'France',ll:[2.3,48.7],s:[4,5],risk:'none',d:'10 APT records from Vietnam. Alsymex near Paris builds 13 of ITER’s inner divertor targets [2].'},
+  atm:{n:'Beijing (AT&M)',ll:[116.4,39.9],s:[4,5],risk:'mid',
+      d:'Advanced Technology & Materials, a state-owned firm, is the other qualified ITER monoblock maker and supplied a full tungsten divertor to France’s WEST reactor [20].'},
+  ri:{n:'Research Instruments, Germany',ll:[7.1,51.0],s:[5],risk:'none',
+      d:'Delivered the first series inner vertical target to ITER in October 2026. Each one carries 2,208 tungsten blocks, with over 60 suppliers involved [2].'},
+  spb:{n:'St Petersburg (dome)',ll:[30.3,59.9],s:[5],risk:'none',d:'Russia supplies the divertor dome under its ITER commitment [1].'},
+  iter:{n:'ITER, Saint-Paul-lez-Durance',ll:[5.76,43.7],s:[5],risk:'none',big:1,
+      d:'About 300,000 tungsten monoblocks armour the divertor, which takes 10–20 MW per square metre [1]. No public record traces any of them to a mine.'}
+};
+/* ---------- corridors: [from, to, records, stage] ---------- */
+const C = [
+  ['rw','lu',90,2],['rw','ae',78,2],['rw','hk',67,2],['rw','tz',63,2],['rw','my',25,2],
+  ['au','vn',201,3],['us0','vn',149,3],['rw','vn',83,3],['ru','vn',66,3],['jp','vn',64,3],['tz','vn',42,3],
+  ['de','vn',37,3],['kr','vn',32,3],['ib','vn',31,3],['cd','vn',28,3],['ae','vn',9,3],
+  ['rw','cn',127,3],['ru','cn',34,3],['ru','at',61,3],['ru','krb',58,3],['jx','usr',209,3],['rw','usr',27,3],
+  ['vn','de',221,4],['vn','jp',169,4],['vn','nl',75,4],['vn','lu',26,4],['vn','fr',10,4],
+  ['jp','ri',0,5],['atm','ri',0,5],['jp','iter',0,5],['ri','iter',0,5],['fr','iter',0,5],['spb','iter',0,5]
+];
+const TRACE = [['rw','ae',3,'Boss Mining → Novacore FZE · Jul 2026'],['ae','vn',9,'Halcyon → Vonfram Masan · 2021'],['vn','jp',169,'Vietnamese APT → Japan'],['jp','iter',0,'A.L.M.T. monoblocks → ITER']];
+
+const STAGE = {
+  all:{t:'All five stages',f:[60,18],k:'Overview',
+    p:'Ore leaves mines in Africa, Asia, Russia and Australia, passes through traders in the Gulf, Hong Kong and Luxembourg, and converges on refiners, above all Vietnam. APT then flows to Germany and Japan. The last step, into ITER, appears only in contracts.'},
+  1:{t:'1 · Mine',f:[70,10],k:'HS 2611 origins',p:'Where the ore comes from. Ring colour shows the documented human-rights risk at each place. China’s mines barely show up in trade data because most of their output is refined at home.'},
+  2:{t:'2 · Trade & transit',f:[45,5],k:'Rwanda’s outbound ore',p:'Rwandan ore fans out to traders before reaching any refiner. Free-zone companies in the UAE and trading houses registered in Luxembourg and Hong Kong sit between the mine and the refinery.'},
+  3:{t:'3 · Refine to APT',f:[95,15],k:'Ore into refiners',p:'Ore converges on a few refiners. Vietnam alone receives 1,759 of the 4,582 ore records. A further 392 records from China to Indonesia are left out because no tungsten buyer could be identified there.'},
+  4:{t:'4 · Fusion-grade powder',f:[60,35],k:'HS 2841.80 APT',p:'Vietnam’s APT goes mostly to Germany and Japan, where powder makers turn it into metal. This is where the trail goes dark: no record links a refiner’s APT to the powder that becomes a fusion component.'},
+  5:{t:'5 · Component → reactor',f:[40,45],k:'ITER contracts',p:'Monoblocks are made in Japan and China, built into divertor targets in Japan, Germany and France, and shipped to ITER in southern France. These are contracts, not shipment records.'},
+  trace:{t:'Follow one route',f:[65,15],k:'A single path',p:''}
+};
+
+/* ---------- land dots ---------- */
+const dots=[];
+LAND.split(',').forEach((row,r)=>{ if(!row) return; const lat=90-(r+0.5); const cl=Math.cos(lat*D);
+  const step=Math.max(1,Math.round(1/Math.max(cl,0.01))); let c=0,land=false;
+  row.split('.').forEach(tok=>{ const n=parseInt(tok,36); if(land){ for(let k=c;k<c+n;k++){ if(k%step===0) dots.push(-180+k+0.5,lat);} } c+=n; land=!land; });
+});
+const DP=new Float32Array(dots.length/2*3);
+for(let i=0,j=0;i<dots.length;i+=2,j+=3){ const a=dots[i]*D,b=dots[i+1]*D; DP[j]=Math.cos(b)*Math.cos(a); DP[j+1]=Math.cos(b)*Math.sin(a); DP[j+2]=Math.sin(b); }
+function vec(ll){ const a=ll[0]*D,b=ll[1]*D; return [Math.cos(b)*Math.cos(a),Math.cos(b)*Math.sin(a),Math.sin(b)]; }
+function arc(A,B,n){ n=n||72; const a=vec(A),b=vec(B); const dt=Math.max(-1,Math.min(1,a[0]*b[0]+a[1]*b[1]+a[2]*b[2])); const om=Math.acos(dt), so=Math.sin(om)||1e-6;
+  const H=0.03+0.28*om/Math.PI, pts=[];
+  for(let i=0;i<=n;i++){ const t=i/n, s1=Math.sin((1-t)*om)/so, s2=Math.sin(t*om)/so, h=1+H*Math.sin(Math.PI*t);
+    pts.push([(a[0]*s1+b[0]*s2)*h,(a[1]*s1+b[1]*s2)*h,(a[2]*s1+b[2]*s2)*h]); }
+  return pts; }
+const ARCS=C.map(c=>({from:c[0],to:c[1],n:c[2],stage:c[3],pts:arc(N[c[0]].ll,N[c[1]].ll)}));
+const TARCS=TRACE.map((c,i)=>({from:c[0],to:c[1],n:c[2],label:c[3],i,pts:arc(N[c[0]].ll,N[c[1]].ll)}));
+Object.values(N).forEach(p=>p.v=vec(p.ll));
+
+/* legend totals */
+const recs=C.reduce((s,c)=>s+c[2],0);
+document.getElementById('lg-c').textContent=C.length;
+document.getElementById('lg-r').textContent=recs.toLocaleString('en-US');
+document.getElementById('lg-p').textContent=Object.keys(N).length;
+
+/* ---------- canvas & camera ---------- */
+const cv=document.getElementById('globe'), ctx=cv.getContext('2d');
+let W=0,H=0,R=0,cx=0,cy=0,dpr=1;
+function size(){ dpr=Math.min(2,window.devicePixelRatio||1); const r=cv.getBoundingClientRect(); W=r.width; H=r.height;
+  cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); R=Math.min(W,H)*0.40; cx=W/2; cy=H/2+4; }
+window.addEventListener('resize',size); size();
+const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let lon0=60,lat0=18, tgt=null, drag=null, idle=0, stage='all', sel=null, tStart=performance.now();
+function basis(){ const l=lon0*D,p=lat0*D; return {d:[Math.cos(p)*Math.cos(l),Math.cos(p)*Math.sin(l),Math.sin(p)], e:[-Math.sin(l),Math.cos(l),0], u:[-Math.sin(p)*Math.cos(l),-Math.sin(p)*Math.sin(l),Math.cos(p)]}; }
+function proj(p,B){ const X=p[0]*B.e[0]+p[1]*B.e[1]+p[2]*B.e[2], Y=p[0]*B.u[0]+p[1]*B.u[1]+p[2]*B.u[2], Z=p[0]*B.d[0]+p[1]*B.d[1]+p[2]*B.d[2];
+  return {x:cx+R*X,y:cy-R*Y,z:Z,vis: Z>0 || (X*X+Y*Y)>1.0}; }
+function hexA(h,a){ const n=parseInt(h.slice(1),16); return 'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
+
+function inStage(arcObj){ return stage==='all' || arcObj.stage==stage; }
+function nodeActive(k){ if(stage==='all') return true; if(stage==='trace') return ['rw','ae','vn','jp','iter'].includes(k); return N[k].s.includes(+stage); }
+
+function draw(now){
+  const t=Math.max(0,(now-tStart)/1000);
+  if(tgt){ const k=0.07; let dl=((tgt[0]-lon0+540)%360)-180; lon0+=dl*k; lat0+=(tgt[1]-lat0)*k; if(Math.abs(dl)<0.2&&Math.abs(tgt[1]-lat0)<0.2) tgt=null; }
+  else if(!drag && !reduce && !sel){ idle++; if(idle>90) lon0+=0.06; }
+  const B=basis();
+  ctx.clearRect(0,0,W,H);
+  // atmosphere
+  let g=ctx.createRadialGradient(cx,cy,R*0.95,cx,cy,R*1.32); g.addColorStop(0,'rgba(150,190,255,0.42)'); g.addColorStop(0.25,'rgba(110,150,230,0.14)'); g.addColorStop(1,'rgba(80,120,220,0)');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx,cy,R*1.32,0,7); ctx.fill();
+  g=ctx.createRadialGradient(cx-R*0.35,cy-R*0.4,R*0.1,cx,cy,R); g.addColorStop(0,'#16305a'); g.addColorStop(0.7,'#0b1a35'); g.addColorStop(1,'#08132a');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.fill();
+  ctx.strokeStyle='rgba(190,215,255,0.55)'; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.stroke();
+  // land dots in 4 brightness buckets
+  const s=Math.max(1.3,R/170);
+  for(let b=0;b<4;b++){
+    ctx.fillStyle='rgba(140,180,240,'+(0.18+b*0.17)+')';
+    for(let j=0;j<DP.length;j+=3){ const Z=DP[j]*B.d[0]+DP[j+1]*B.d[1]+DP[j+2]*B.d[2]; if(Z<=0) continue; const bb=Z<0.25?0:Z<0.5?1:Z<0.75?2:3; if(bb!==b) continue;
+      const X=DP[j]*B.e[0]+DP[j+1]*B.e[1]+DP[j+2]*B.e[2], Y=DP[j]*B.u[0]+DP[j+1]*B.u[1]+DP[j+2]*B.u[2];
+      ctx.fillRect(cx+R*X-s/2,cy-R*Y-s/2,s,s); }
+  }
+  // arcs
+  const list = stage==='trace' ? TARCS.map(a=>Object.assign({stage:'trace'},a)) : ARCS;
+  const traceShow = stage==='trace' ? Math.min(TARCS.length, Math.floor((t-traceT0)/1.6)+1) : 0;
+  list.forEach((a,ai)=>{
+    if(stage==='trace' && a.i>=traceShow) return;
+    const on = stage==='trace' || inStage(a);
+    const col = COL[a.stage]; const contract = a.n===0;
+    const w = contract?1.4:(0.6+Math.sqrt(a.n)*0.24);
+    ctx.lineWidth = on? w : 0.6; ctx.strokeStyle = hexA(col, on? (contract?0.85:0.75) : 0.08);
+    ctx.setLineDash(contract?[5,5]:[]);
+    // draw progressively in trace mode
+    let upto=a.pts.length; if(stage==='trace' && a.i===traceShow-1) upto=Math.max(2,Math.floor(a.pts.length*Math.min(1,((t-traceT0)-a.i*1.6)/1.1)));
+    ctx.beginPath(); let pen=false;
+    for(let i=0;i<upto;i++){ const q=proj(a.pts[i],B); if(!q.vis){pen=false;continue;} if(!pen){ctx.moveTo(q.x,q.y);pen=true;} else ctx.lineTo(q.x,q.y); }
+    ctx.stroke(); ctx.setLineDash([]);
+    // traffic particles: more records, more particles
+    if(on && !contract && !reduce){ const k=Math.max(1,Math.min(10,Math.round(a.n/22))); const sp=0.12+Math.min(0.25,a.n/900);
+      for(let m=0;m<k;m++){ const f=(((t*sp)+m/k)%1+1)%1; const q=proj(a.pts[Math.floor(f*(a.pts.length-1))],B); if(!q.vis) continue;
+        ctx.fillStyle=hexA(col,0.95); ctx.beginPath(); ctx.arc(q.x,q.y,1.4+Math.min(1.6,a.n/150),0,7); ctx.fill(); } }
+  });
+  // nodes
+  const labels=[];
+  for(const k in N){ const p=N[k]; const q=proj(p.v,B); if(q.z<=0.05) continue; const act=nodeActive(k);
+    const rr=(p.big?4.5:3.2); const rc=RISK[p.risk];
+    ctx.globalAlpha = act?1:0.25;
+    if(act && p.risk!=='none' && (stage==='1'||stage==='all') && !reduce){ const ph=(t*0.8+(k.charCodeAt(0)%7)/7)%1; ctx.strokeStyle=hexA(rc,0.6*(1-ph)); ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(q.x,q.y,rr+ph*14,0,7); ctx.stroke(); }
+    ctx.fillStyle='#050b17'; ctx.beginPath(); ctx.arc(q.x,q.y,rr+2,0,7); ctx.fill();
+    ctx.strokeStyle=rc; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(q.x,q.y,rr+1,0,7); ctx.stroke();
+    ctx.fillStyle='#f2f6ff'; ctx.beginPath(); ctx.arc(q.x,q.y,rr*0.45,0,7); ctx.fill();
+    if(sel===k){ ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(q.x,q.y,rr+7,0,7); ctx.stroke(); }
+    ctx.globalAlpha=1;
+    if(act && q.z>0.3 && (p.big || stage!=='all' || sel===k)) labels.push({x:q.x,y:q.y,txt:p.n,z:q.z});
+    p._q=q; p._act=act;
+  }
+  ctx.font='500 11px "IBM Plex Mono", ui-monospace, monospace'; ctx.textBaseline='middle';
+  const placed=[];
+  labels.sort((a,b)=>b.z-a.z).forEach(L=>{ const w=ctx.measureText(L.txt).width; let x=L.x+9, y=L.y-10; if(x+w>W-4) x=L.x-9-w;
+    if(placed.some(r=>x<r.x+r.w && x+w>r.x && Math.abs(y-r.y)<13)) return; placed.push({x,y,w});
+    ctx.fillStyle='rgba(5,11,23,0.7)'; ctx.fillRect(x-3,y-8,w+6,16); ctx.fillStyle='#e8eefc'; ctx.fillText(L.txt,x,y); });
+  requestAnimationFrame(draw);
+}
+let traceT0=0;
+
+/* ---------- panel ---------- */
+const panel=document.getElementById('panel');
+const fmt=n=>n.toLocaleString('en-US');
+function stagePanel(){
+  const S=STAGE[stage]; let h='<p class="pk">'+S.k+'</p><h3>'+S.t+'</h3>';
+  if(stage==='trace'){
+    h+='<p>One path through the data, from an exporter named in a UN conflict-minerals investigation toward the reactor.</p><ol>'+
+      '<li><b>Boss Mining Solution</b>, Rwanda → <b>Novacore FZE</b>, UAE. 3 ore shipments, July 2026. Sayari gives the exporter no risk flag.</li>'+
+      '<li><b>Halcyon Inc</b>, Dubai → <b>Vonfram Masan</b>, Vietnam. 9 ore shipments in 2021, more via Tanzania in 2023.</li>'+
+      '<li><b>Vietnam → Japan</b>. 169 APT records. Masan ships most of Vietnam’s APT.</li>'+
+      '<li style="color:#ffb27a"><b>The trail stops.</b> No record links this APT to A.L.M.T., ITER’s monoblock maker.</li></ol>'+
+      '<p style="font-size:.82rem">The first two steps are separate companies on the same corridor. This shows the route exists, not that one cargo travelled it end to end.</p>';
+  } else {
+    h+='<p>'+S.p+'</p>';
+    const rows = stage==='all'||stage==='1' ? null : C.filter(c=>c[3]==stage);
+    if(rows && rows.length){ const mx=Math.max(...rows.map(r=>r[2]),1);
+      h+='<div class="tablewrap"><table><thead><tr><th>Corridor</th><th class="r">Records</th></tr></thead><tbody>'+
+        rows.slice().sort((a,b)=>b[2]-a[2]).map(r=>'<tr><td>'+N[r[0]].n.split(',')[0].split(' (')[0]+' → '+N[r[1]].n.split(',')[0].split(' (')[0]+
+        (r[2]?'<span class="bar" style="width:'+(r[2]/mx*100)+'%;color:'+COL[stage]+'"></span>':'')+'</td><td class="r">'+(r[2]?fmt(r[2]):'contract')+'</td></tr>').join('')+
+        '</tbody></table></div>'; }
+    if(stage==='1'){ h+='<div class="tablewrap"><table><tbody>'+['jx','shan','rw','cd','vn','ru','kr','ib','au'].map(k=>'<tr><td>'+N[k].n+'</td><td class="r" style="color:'+RISK[N[k].risk]+'">'+({high:'high',mid:'medium',low:'lower'})[N[k].risk]+'</td></tr>').join('')+'</tbody></table></div>'; }
+    h+='<p style="font-size:.8rem;color:#8ea3c7">Tap any point on the globe for details.</p>';
+  }
+  panel.innerHTML=h;
+}
+function nodePanel(k){ const p=N[k];
+  const rl={high:'High risk',mid:'Medium risk',low:'Lower risk'}[p.risk];
+  const io=C.filter(c=>c[0]===k||c[1]===k).filter(c=>c[2]>0);
+  let h='<button type="button" class="back" id="backbtn">← Back to stage</button><p class="pk">'+p.s.map(s=>'Stage '+s).join(' · ')+'</p><h3>'+p.n+'</h3>'+(rl?'<span class="sev '+p.risk+'">'+rl+'</span>':'')+'<p>'+p.d+'</p>';
+  if(io.length){ h+='<div class="tablewrap"><table><thead><tr><th>Corridor</th><th class="r">Records</th></tr></thead><tbody>'+io.sort((a,b)=>b[2]-a[2]).map(r=>'<tr><td>'+(r[0]===k?'→ '+N[r[1]].n:'← '+N[r[0]].n)+'</td><td class="r">'+fmt(r[2])+'</td></tr>').join('')+'</tbody></table></div>'; }
+  panel.innerHTML=h; document.getElementById('backbtn').addEventListener('click',()=>{sel=null;stagePanel();});
+}
+
+/* ---------- controls ---------- */
+const btns=[...document.querySelectorAll('.gb-step')];
+function setStage(s){ stage=s; sel=null; btns.forEach(b=>b.setAttribute('aria-pressed', b.dataset.stage===s?'true':'false'));
+  tgt=STAGE[s].f.slice(); if(s==='trace') traceT0=(performance.now()-tStart)/1000; stagePanel(); }
+btns.forEach(b=>b.addEventListener('click',()=>setStage(b.dataset.stage)));
+let down=null;
+cv.addEventListener('pointerdown',e=>{ down={x:e.clientX,y:e.clientY}; drag={x:e.clientX,y:e.clientY,l:lon0,p:lat0}; tgt=null; idle=0; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove',e=>{ if(!drag) return; const k=90/R; lon0=drag.l-(e.clientX-drag.x)*k; lat0=Math.max(-70,Math.min(75,drag.p+(e.clientY-drag.y)*k)); });
+cv.addEventListener('pointerup',e=>{ const moved=down?Math.hypot(e.clientX-down.x,e.clientY-down.y):99; drag=null; idle=0;
+  if(moved<6){ const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top; let best=null,bd=16;
+    for(const k in N){ const q=N[k]._q; if(!q||q.z<=0.05) continue; const d=Math.hypot(q.x-x,q.y-y); if(d<bd){bd=d;best=k;} }
+    if(best){ sel=best; nodePanel(best); } } });
+cv.addEventListener('pointercancel',()=>{drag=null;});
+stagePanel(); requestAnimationFrame(draw);
+})();
+</script>
+
+
+</body></html>
