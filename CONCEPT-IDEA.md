@@ -3,6 +3,9 @@
 *Chelsea Zhao · Beyond the Brand · Session 9 · November 16, 2026*
 *Addition to the "Behind the Divertor" Sayari demo*
 
+**Repo:** github.com/xz3355/behind-the-divertor  
+**Live site:** xz3355.github.io/behind-the-divertor (Section 6: Proposed Regulation Simulator)
+
 ## The idea in one sentence
 
 Let an analyst take a new piece of intelligence about a **possible** regulation, turn it into a scenario, and drop it into the supply chain map to see which suppliers, parts and timelines it would hit, before the rule is final.

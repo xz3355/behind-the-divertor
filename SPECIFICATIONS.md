@@ -3,6 +3,9 @@
 *Chelsea Zhao · Beyond the Brand · Session 9 · November 16, 2026*
 *Companion to CONCEPT-IDEA.md. Implemented as Section 6 of the "Behind the Divertor" demo site.*
 
+**Repo:** github.com/xz3355/behind-the-divertor  
+**Live site:** xz3355.github.io/behind-the-divertor (Section 6: Proposed Regulation Simulator)
+
 ## 1. Scope
 
 A new section on the demo site, **"6 · Proposed regulation simulator"**, that:
